@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Local ignore
+bin/
+include/
+pyvenv.cfg
+.DS_Store
