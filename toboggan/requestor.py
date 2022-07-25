@@ -6,14 +6,14 @@ from requests import Request, Session
 class Send:
 
 	@staticmethod
-	def block(client, request, settings):
+	def block(session, request, settings):
 
-		return client.send(client.prepare_request(Request(**request)), **settings)
+		return session.send(session.prepare_request(Request(**request)), **settings)
 
 	@staticmethod
-	async def nonblock(client, request, settings):
+	async def nonblock(session, request, settings):
 
-		async with getattr(client, None.lower())(url=None) as resp:
+		async with getattr(session, None.lower())(url=None) as resp:
 
 			return await resp
 
@@ -32,7 +32,8 @@ class RequestorProps:
 			method=self.payload.method,
 			url=self.payload.url,
 			json=self.payload.json,
-			headers=self.payload.headers
+			headers=self.payload.headers,
+			auth=self.payload.auth
 		)
 
 	@property
@@ -61,14 +62,14 @@ class Requestor(RequestorProps, Send):
 
 			print(payload)
 
-		if isinstance(payload.connector.client, Session):
+		if isinstance(payload.session, Session):
 
 			self.resp = Send.block(
-				client=payload.connector.client,
+				session=payload.session,
 				request=self.blockRequest,
-				settings=payload.connector.blockSettings
+				settings=payload.blockSettings
 			)
 
-		elif isinstance(payload.connector.client, ClientSession):
+		elif isinstance(payload.session, ClientSession):
 
 			...

@@ -54,6 +54,16 @@ class PayloadProps:
 
 			pass
 
+	@property
+	def auth(self):
+
+		return self.connector.auth
+
+	@property
+	def blockSettings(self):
+
+		return self.connector.blockSettings
+
 
 class Payload(PayloadProps):
 
