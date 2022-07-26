@@ -1,4 +1,3 @@
-from .client import Client
 from .connector import Connector
 from .headers import Headers
 from .methods import Delete, Get, Options, Post, Put

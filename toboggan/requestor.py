@@ -54,7 +54,7 @@ class RequestorProps:
 
 class Requestor(RequestorProps, Send):
 
-	def __init__(self, payload, payload_inspector=False):
+	def __init__(self, payload, payload_inspector):
 
 		self._payload = payload
 

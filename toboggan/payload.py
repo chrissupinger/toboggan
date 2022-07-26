@@ -21,12 +21,16 @@ class PayloadProps:
 		return self.connector.client
 
 	@property
+	def path(self):
+
+		return self.request.get('path').format(**self.request)
+
+	@property
 	def url(self):
 
-		if self.request.get('path'):
+		if self.path:
 
-			return f"{self.connector.base}/{self.request.get('path')}"\
-				.format(**self.request)
+			return f"{self.connector.base}/{self.path}"
 
 		return self.connector.base
 
