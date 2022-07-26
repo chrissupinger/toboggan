@@ -17,9 +17,7 @@ class Httpbin(Connector):
 
 	def __init__(self):
 
-		super().__init__(
-			base='https://httpbin.org'
-		)
+		super().__init__(base='https://httpbin.org')
 
 	@Get(path='ip')
 	def ip(self):
@@ -42,7 +40,9 @@ myIp = httpbin.ip()
 ### Your response
 
 ``` python
-print(myIp.json)
+print(myIp.status_code)
+# 200
 
+print(myIp.json)
 # {'origin': '<YOUR_IP_ADDRESS>'}
 ```
