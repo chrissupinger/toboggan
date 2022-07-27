@@ -28,13 +28,22 @@ class RequestorProps:
 	@property
 	def blockRequest(self):
 
-		return dict(
+		body = dict(
 			method=self.payload.method,
 			url=self.payload.url,
-			json=self.payload.json,
 			headers=self.payload.headers,
 			auth=self.payload.auth
 		)
+
+		if isinstance(self.payload.body, str):
+
+			body['data'] = self.payload.body
+
+		elif isinstance(self.payload.body, dict):
+
+			body['json'] = self.payload.body
+
+		return body
 
 	@property
 	def status_code(self):

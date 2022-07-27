@@ -35,7 +35,7 @@ class PayloadProps:
 		return self.connector.base
 
 	@property
-	def json(self):
+	def body(self):
 
 		return self.request.get('body')
 
