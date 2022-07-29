@@ -25,7 +25,7 @@ class RequestorProps:
 	@property
 	def request(self):
 
-		body = dict(
+		req = dict(
 			method=self.payload.method,
 			url=self.payload.url,
 			headers=self.payload.headers,
@@ -34,13 +34,13 @@ class RequestorProps:
 
 		if isinstance(self.payload.body, str):
 
-			body['data'] = self.payload.body
+			req['data'] = self.payload.body
 
 		elif isinstance(self.payload.body, dict):
 
-			body['json'] = self.payload.body
+			req['json'] = self.payload.body
 
-		return body
+		return req
 
 	@property
 	def status_code(self):
