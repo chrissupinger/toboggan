@@ -1,21 +1,18 @@
-import asyncio
-from aiohttp import ClientSession
-from requests import Request, Session
+from requests import Request
 
 
-class Send:
+class SendBlock:
 
-	@staticmethod
-	def block(session, request, settings):
+	_resp = None
 
-		return session.send(session.prepare_request(Request(**request)), **settings)
+	def __init__(self, session, request, settings):
 
-	@staticmethod
-	async def nonblock(session, request, settings):
+		self._resp = session.send(session.prepare_request(Request(**request)), **settings)
 
-		async with getattr(session, None.lower())(url=None) as resp:
+	@property
+	def data(self):
 
-			return await resp
+		return self._resp
 
 
 class RequestorProps:
@@ -26,7 +23,7 @@ class RequestorProps:
 		return self._payload
 
 	@property
-	def blockRequest(self):
+	def request(self):
 
 		body = dict(
 			method=self.payload.method,
@@ -61,24 +58,16 @@ class RequestorProps:
 		return self.resp.json()
 
 
-class Requestor(RequestorProps, Send):
+class Requestor(RequestorProps, SendBlock):
 
 	def __init__(self, payload, payload_inspector):
 
 		self._payload = payload
 
+		super().__init__(payload.session, self.request, payload.settings)
+
 		if payload_inspector:
 
 			print(payload)
 
-		if isinstance(payload.session, Session):
-
-			self.resp = Send.block(
-				session=payload.session,
-				request=self.blockRequest,
-				settings=payload.blockSettings
-			)
-
-		elif isinstance(payload.session, ClientSession):
-
-			...
+		self.resp = super().data

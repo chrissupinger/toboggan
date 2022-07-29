@@ -10,11 +10,7 @@ class MethodConstructor:
 
 			kwargs.update(dict(path=self.path))
 
-			payload = Payload(
-				connector=next(iter(args)),
-				request=kwargs,
-				method=self.method
-			)
+			payload = Payload(next(iter(args)), kwargs, self.method)
 
 			return Requestor(payload, self.payload_inspector)
 

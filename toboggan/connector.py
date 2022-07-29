@@ -19,15 +19,9 @@ class ConnectorProps:
 		return self._auth
 
 	@property
-	def blockSettings(self):
+	def settings(self):
 
-		return dict(
-			timeout=self._kwargs.get('timeout'),
-			proxies=self._kwargs.get('proxies'),
-			verify=self._kwargs.get('verify', True),
-			stream=self._kwargs.get('stream'),
-			cert=self._kwargs.get('cert')
-		)
+		return self._kwargs
 
 	@headers.setter
 	def headers(self, fields):

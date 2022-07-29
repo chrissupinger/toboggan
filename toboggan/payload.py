@@ -64,9 +64,9 @@ class PayloadProps:
 		return self.connector.auth
 
 	@property
-	def blockSettings(self):
+	def settings(self):
 
-		return self.connector.blockSettings
+		return self.connector.settings
 
 
 class Payload(PayloadProps):
@@ -86,6 +86,6 @@ class Payload(PayloadProps):
 			f'path:    /{self.request.get("path")}\n'
 			f'base:    {self.connector.base}\n'
 			f'headers: {self.headers}\n'
-			f'body:    {self.json}\n'
+			f'body:    {self.body}\n'
 			f'{"-" * 25}\n'
 		)
