@@ -76,7 +76,7 @@ pokeapi = PokeApi(base='https://pokeapi.co', client=ClientType.nonblock)
 requests = [pokeapi.pokemon(no=no) for no in range(1, 151)]
 ```
 
-### Sending your pool
+### Your invocation
 
 ``` python
 pokeapi.staging.send(requests)
