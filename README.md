@@ -79,13 +79,13 @@ requests = [pokeapi.pokemon(no=no) for no in range(1, 151)]
 ### Your invocation
 
 ``` python
-pokeapi.staging.send(requests)
+myPokemon = pokeapi.staging.send(requests)
 ```
 
 ### Retrieving your responses
 
 ``` python
-for resp in pokeapi.staging.responses:
+for resp in myPokemon:
 
 	print(resp.status_code)
 	# 200
