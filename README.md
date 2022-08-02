@@ -4,7 +4,7 @@ Most def inspired by [prkumar's](https://github.com/prkumar) work on [Uplink](ht
 
 toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's initial support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).
 
-## Usage w/ [httpbin](https://github.com/postmanlabs/httpbin)
+## Blocking usage w/ [httpbin](https://github.com/postmanlabs/httpbin)
 
 ### Your class
 
@@ -21,8 +21,8 @@ class Httpbin(Connector):
 
 	@Get(path='ip')
 	def ip(self):
-
-		pass
+		"""Retrieves your remote IP address.
+		"""
 ```
 
 ### Your instantiation
@@ -45,4 +45,51 @@ print(myIp.status_code)
 
 print(myIp.json)
 # {'origin': '<YOUR_IP_ADDRESS>'}
+```
+
+## Nonblocking usage w/ [PokéAPI](https://pokeapi.co/)
+
+### Your class
+
+``` python
+from toboggan import ClientType, Connector, Get, Headers
+
+
+@Headers({'Content-Type': 'application/json'})
+class PokeApi(Connector):
+
+	@Get(path='api/v2/pokemon/{no}')
+	def pokemon(self):
+		"""Retrieves Pokémon metadata.
+		"""
+```
+
+### Your instantiation
+
+``` python
+pokeapi = PokeApi(base='https://pokeapi.co', client=ClientType.nonblock)
+```
+
+### Your pool
+
+``` python
+requests = [pokeapi.pokemon(no=no) for no in range(1, 151)]
+```
+
+### Sending your pool
+
+``` python
+pokeapi.staging.send(requests)
+```
+
+### Retrieving your responses
+
+``` python
+for resp in pokeapi.staging.responses:
+
+	print(resp.status_code)
+	# 200
+
+	print(resp.json)
+	# {'abilities': [{'ability': {'name': ...}, ...]}
 ```

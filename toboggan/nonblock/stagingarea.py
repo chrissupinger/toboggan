@@ -18,11 +18,15 @@ class StagingArea(StagingAreaProps):
 		self.requestPool = NonblockRequestPoolModel(client, auth, settings)
 		self._responses = None
 
-	def load(self, payload):
+	# def load(self, payload):
 
-		self.requestPool.requests = payload.requestConfig
+	# 	self.requestPool.requests = payload.requestConfig
 
-	def send(self):
+	def send(self, requests):
+
+		for request in requests:
+
+			self.requestPool.requests = request
 
 		requestor = NonblockRequestor(self.requestPool)
 

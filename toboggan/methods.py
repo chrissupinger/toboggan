@@ -21,7 +21,7 @@ class MethodConstructor:
 
 			elif payload.session == ClientType.nonblock.value:
 
-				connector.staging.load(payload)
+				return payload.requestConfig
 
 		return argHandler
 
