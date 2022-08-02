@@ -13,7 +13,7 @@ class MethodConstructor:
 
 			kwargs.update(dict(path=self.path))
 
-			payload = Payload(connector, kwargs, self.method)
+			payload = Payload(connector, kwargs, self.method, self.requestSettings)
 
 			if payload.session == ClientType.block.value:
 
@@ -43,47 +43,52 @@ class MethodProps:
 
 		return self._payload_inspector
 
+	@property
+	def requestSettings(self):
 
-class Delete(MethodProps, MethodConstructor):
+		return self._requestSettings
 
-	def __init__(self, path: str = None, payload_inspector=False):
 
-		self._method = self.__class__.__name__.upper()
+class MethodTemplate(MethodProps):
+
+	def __init__(self, method, path: str, payload_inspector, **kwargs):
+
+		self._method = method
 		self._path = path
 		self._payload_inspector = payload_inspector
+		self._requestSettings = kwargs
 
 
-class Get(MethodProps, MethodConstructor):
+class Delete(MethodTemplate, MethodConstructor):
 
-	def __init__(self, path: str = None, payload_inspector=False):
+	def __init__(self, path: str = None, payload_inspector=False, **kwargs):
 
-		self._method = self.__class__.__name__.upper()
-		self._path = path
-		self._payload_inspector = payload_inspector
+		super().__init__(self.__class__.__name__.upper(), path, payload_inspector, **kwargs)
 
 
-class Options(MethodProps, MethodConstructor):
+class Get(MethodTemplate, MethodConstructor):
 
-	def __init__(self, path: str = None, payload_inspector=False):
+	def __init__(self, path: str = None, payload_inspector=False, **kwargs):
 
-		self._method = self.__class__.__name__.upper()
-		self._path = path
-		self._payload_inspector = payload_inspector
+		super().__init__(self.__class__.__name__.upper(), path, payload_inspector, **kwargs)
 
 
-class Post(MethodProps, MethodConstructor):
+class Options(MethodTemplate, MethodConstructor):
 
-	def __init__(self, path: str = None, payload_inspector=False):
+	def __init__(self, path: str = None, payload_inspector=False, **kwargs):
 
-		self._method = self.__class__.__name__.upper()
-		self._path = path
-		self._payload_inspector = payload_inspector
+		super().__init__(self.__class__.__name__.upper(), path, payload_inspector, **kwargs)
 
 
-class Put(MethodProps, MethodConstructor):
+class Post(MethodTemplate, MethodConstructor):
 
-	def __init__(self, path: str = None, payload_inspector=False):
+	def __init__(self, path: str = None, payload_inspector=False, **kwargs):
 
-		self._method = self.__class__.__name__.upper()
-		self._path = path
-		self._payload_inspector = payload_inspector
+		super().__init__(self.__class__.__name__.upper(), path, payload_inspector, **kwargs)
+
+
+class Put(MethodTemplate, MethodConstructor):
+
+	def __init__(self, path: str = None, payload_inspector=False, **kwargs):
+
+		super().__init__(self.__class__.__name__.upper(), path, payload_inspector, **kwargs)

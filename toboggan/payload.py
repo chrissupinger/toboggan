@@ -16,6 +16,11 @@ class PayloadProps:
 		return self._method
 
 	@property
+	def requestSettings(self):
+
+		return self._requestSettings
+
+	@property
 	def session(self):
 
 		return self.connector.client
@@ -81,6 +86,12 @@ class PayloadProps:
 
 			req['json'] = self.body
 
+		if self.requestSettings:
+
+			for key, value in self.requestSettings.items():
+
+				req[key] = value
+
 		return req
 
 	@property
@@ -89,13 +100,21 @@ class PayloadProps:
 		return self.connector.settings
 
 
-class Payload(PayloadProps):
+class PayloadTemplate(PayloadProps):
 
-	def __init__(self, connector, request, method):
+	def __init__(self, connector, request, method, requestSettings):
 
 		self._connector = connector
 		self._request = request
 		self._method = method
+		self._requestSettings = requestSettings
+
+
+class Payload(PayloadTemplate):
+
+	def __init__(self, connector, request, method, requestSettings):
+
+		super().__init__(connector, request, method, requestSettings)
 
 	def __repr__(self):
 
@@ -103,7 +122,7 @@ class Payload(PayloadProps):
 			'\nPAYLOAD INSPECTOR\n'
 			f'{"-" * 25}\n'
 			f'method:  {self.method}\n'
-			f'path:    /{self.request.get("path")}\n'
+			f'path:    /{self.path}\n'
 			f'base:    {self.connector.base}\n'
 			f'headers: {self.headers}\n'
 			f'body:    {self.body}\n'
