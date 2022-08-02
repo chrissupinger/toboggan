@@ -59,7 +59,7 @@ from toboggan import ClientType, Connector, Get, Headers
 class PokeApi(Connector):
 
 	@Get(path='api/v2/pokemon/{no}')
-	def pokemon(self):
+	def pokemon(self, no):
 		"""Retrieves Pokémon metadata.
 		"""
 ```
