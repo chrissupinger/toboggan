@@ -1,7 +1,13 @@
-from requests import Session
+from .client import Client, ClientType
+from .nonblock.stagingarea import StagingArea
 
 
 class ConnectorProps:
+
+	@property
+	def client(self):
+
+		return self._client
 
 	@property
 	def base(self):
@@ -23,6 +29,16 @@ class ConnectorProps:
 
 		return self._kwargs
 
+	@property
+	def staging(self):
+
+		return self._staging
+
+	@client.setter
+	def client(self, client):
+
+		self._client = client
+
 	@headers.setter
 	def headers(self, fields):
 
@@ -31,32 +47,18 @@ class ConnectorProps:
 			self._headers[key] = value
 
 
-class Client:
-
-	def __init__(self, client):
-
-		self._client = client
-
-	@property
-	def client(self):
-
-		return self._client
-
-	@client.setter
-	def client(self, client):
-
-		self._client = client
-
-
-class Connector(ConnectorProps, Client):
+class Connector(ConnectorProps):
 	"""Represents the constructor that manages the session and its base properties.
 	"""
 
-	def __init__(self, base: str, auth=None, client: Session = Session(), **kwargs) -> None:
+	def __init__(self, base: str, auth=None, client=ClientType.block, **kwargs) -> None:
 
-		super().__init__(client=client)
-
+		self._client = Client(client).session
 		self._base = base
 		self._headers = dict()
 		self._auth = auth
 		self._kwargs = kwargs
+
+		if client == ClientType.nonblock:
+
+			self._staging = StagingArea(self.client, self.auth, self.settings)

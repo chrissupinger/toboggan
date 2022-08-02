@@ -1,5 +1,6 @@
+from .blockrequestor import BlockRequestor
+from .client import ClientType
 from .payload import Payload
-from .requestor import Requestor
 
 
 class MethodConstructor:
@@ -8,11 +9,19 @@ class MethodConstructor:
 
 		def argHandler(*args, **kwargs):
 
+			connector = next(iter(args))
+
 			kwargs.update(dict(path=self.path))
 
-			payload = Payload(next(iter(args)), kwargs, self.method)
+			payload = Payload(connector, kwargs, self.method)
 
-			return Requestor(payload, self.payload_inspector)
+			if payload.session == ClientType.block.value:
+
+				return BlockRequestor(payload, self.payload_inspector)
+
+			elif payload.session == ClientType.nonblock.value:
+
+				connector.staging.load(payload)
 
 		return argHandler
 

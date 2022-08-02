@@ -64,7 +64,27 @@ class PayloadProps:
 		return self.connector.auth
 
 	@property
-	def settings(self):
+	def requestConfig(self):
+
+		req = dict(
+			method=self.method,
+			url=self.url,
+			headers=self.headers,
+			auth=self.auth
+		)
+
+		if isinstance(self.body, str):
+
+			req['data'] = self.body
+
+		elif isinstance(self.body, dict):
+
+			req['json'] = self.body
+
+		return req
+
+	@property
+	def sessionSettings(self):
 
 		return self.connector.settings
 
