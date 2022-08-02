@@ -82,14 +82,14 @@ requests = [pokeapi.pokemon(no=no) for no in range(1, 151)]
 myPokemon = pokeapi.staging.send(requests)
 ```
 
-### Retrieving your responses
+### Your responses
 
 ``` python
-for resp in myPokemon:
+for pokemon in myPokemon:
 
-	print(resp.status_code)
+	print(pokemon.status_code)
 	# 200
 
-	print(resp.json)
+	print(pokemon.json)
 	# {'abilities': [{'ability': {'name': ...}, ...]}
 ```
