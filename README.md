@@ -58,7 +58,7 @@ from toboggan import ClientType, Connector, Get, Headers
 @Headers({'Content-Type': 'application/json'})
 class PokeApi(Connector):
 
-	@Get(path='api/v2/pokemon/{no}')
+	@Get(path='pokemon/{no}')
 	def pokemon(self, no):
 		"""Retrieves Pokémon metadata.
 		"""
@@ -67,7 +67,7 @@ class PokeApi(Connector):
 ### Your instantiation
 
 ``` python
-pokeapi = PokeApi(base='https://pokeapi.co', client=ClientType.nonblock)
+pokeapi = PokeApi(base='https://pokeapi.co/api/v2', client=ClientType.nonblock)
 ```
 
 ### Your pool

@@ -41,12 +41,8 @@ class RequestorProps:
 
 class BlockRequestor(RequestorProps, SendBlock):
 
-	def __init__(self, payload, payload_inspector):
+	def __init__(self, payload):
 
 		self._payload = payload
-
-		if payload_inspector:
-
-			print(payload)
 
 		super().__init__(payload.session, self.request, payload.sessionSettings)

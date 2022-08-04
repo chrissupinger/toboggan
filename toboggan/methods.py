@@ -15,9 +15,13 @@ class MethodConstructor:
 
 			payload = Payload(connector, kwargs, self.method, self.requestSettings)
 
+			if self.payload_inspector:
+
+				print(payload)
+
 			if payload.session == ClientType.block.value:
 
-				return BlockRequestor(payload, self.payload_inspector)
+				return BlockRequestor(payload)
 
 			elif payload.session == ClientType.nonblock.value:
 
