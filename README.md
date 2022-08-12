@@ -16,7 +16,6 @@ from toboggan import Connector, Get, Headers
 class Httpbin(Connector):
 
 	def __init__(self):
-
 		super().__init__(base='https://httpbin.org')
 
 	@Get(path='ip')
@@ -34,16 +33,15 @@ httpbin = Httpbin()
 ### Your invocation
 
 ``` python
-myIp = httpbin.ip()
+my_ip = httpbin.ip()
 ```
 
 ### Your response
 
 ``` python
-print(myIp.status_code)
+print(my_ip.status_code)
 # 200
-
-print(myIp.json)
+print(my_ip.json)
 # {'origin': '<YOUR_IP_ADDRESS>'}
 ```
 
@@ -79,17 +77,15 @@ requests = [pokeapi.pokemon(no=no) for no in range(1, 151)]
 ### Your invocation
 
 ``` python
-myPokemon = pokeapi.staging.send(requests)
+my_pokemon = pokeapi.staging.send(requests)
 ```
 
 ### Your responses
 
 ``` python
-for pokemon in myPokemon:
-
+for pokemon in my_pokemon:
 	print(pokemon.status_code)
 	# 200
-
 	print(pokemon.json)
 	# {'abilities': [{'ability': {'name': ...}, ...]}
 ```

@@ -1,3 +1,3 @@
-from .models import NonblockResponseModel, NonblockRequestPoolModel
+from .models import NonblockTasks, NonblockResponse, NonblockResponses, NonblockRequestPool
 from .nonblockrequestor import NonblockRequestor
 from .stagingarea import StagingArea
