@@ -3,7 +3,7 @@ from requests import Session
 from aiohttp import ClientSession
 
 
-class ClientType(Enum):
+class ClientType:
 	block = Session()
 	nonblock = ClientSession
 
@@ -24,6 +24,6 @@ class Client(SessionProps):
 
 	def __init__(self, client):
 		if client == ClientType.block:
-			self.session = ClientType.block.value
+			self.session = ClientType.block
 		elif client == ClientType.nonblock:
-			self.session = ClientType.nonblock.value
+			self.session = ClientType.nonblock
