@@ -16,7 +16,7 @@ from toboggan import Connector, Get, Headers
 class Httpbin(Connector):
 
 	def __init__(self):
-		super().__init__(base='https://httpbin.org')
+		super().__init__(base_url='https://httpbin.org')
 
 	@Get(path='ip')
 	def get_ip(self):
@@ -78,13 +78,14 @@ class PokeApiAsync:
             return await response.json()
 
     async def get_gen_one(self, range_):
-        poke_api = PokeApi(base='https://pokeapi.co/api/v2', client=Client.nonblock())
+        poke_api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
         gen_one = [poke_api.get_pokemon(no=no) for no in range_]
         async with poke_api.client.session(**poke_api.client.settings) as session:
             for request in gen_one:
                 self.futures.append(asyncio.ensure_future(self.get_pokemon(session, request)))
             responses = await asyncio.gather(*self.futures)
             return responses
+
 
 poke_api_async = PokeApiAsync()
 asyncio.run(poke_api_async.get_gen_one(range_=range(1, 152))
