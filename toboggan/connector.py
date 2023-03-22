@@ -1,55 +1,73 @@
-from .client import Client, ClientType
-from .nonblock.stagingarea import StagingArea
+# Standard
+from typing import Optional, Text, Union
+
+# Third-party
+from aiohttp import ClientSession
+from requests import Session
+
+# Local
+from .client import Client
+from .models import CommonContext
+from .utils import ClientAliases
+
+__all__ = ('Connector',)
 
 
-class ConnectorProps:
+class _ClientContext:
+    __slots__ = ('_client',)
 
-	@property
-	def client(self):
-		return self._client
+    def __init__(self, client):
+        self._client = client
 
-	@property
-	def base(self):
-		return self._base
+    @property
+    def client(self):
+        return self._client
 
-	@property
-	def headers(self):
-		return self._headers
-
-	@property
-	def auth(self):
-		return self._auth
-
-	@property
-	def settings(self):
-		return self._kwargs
-
-	@property
-	def staging(self):
-		return self._staging
-
-	@client.setter
-	def client(self, client):
-		self._client = client
-
-	@headers.setter
-	def headers(self, fields):
-		for key, value in fields.items():
-			self._headers[key] = value
+    @client.setter
+    def client(self, client_type):
+        self._client = client_type
 
 
-class Connector(ConnectorProps):
-	"""Represents the constructor that manages the session and its base
-	properties.
-	"""
+class _BaseContext(_ClientContext):
+    __slots__ = ('_base_url', '_base_headers',)
 
-	def __init__(
-		self, base: str, auth=None, client=ClientType.block, **kwargs) -> None:
-		self._client = Client(client).session
-		self._base = base
-		self._headers = dict()
-		self._auth = auth
-		self._kwargs = kwargs
-		# If nonblock client type, set request staging area.
-		if client == ClientType.nonblock:
-			self._staging = StagingArea(self.client, self.auth, self.settings)
+    def __init__(self, base_url, client):
+        super().__init__(client=client)
+        self._base_url = base_url
+        self._base_headers: Optional[CommonContext] = None
+
+    @property
+    def base_url(self):
+        return self._base_url
+
+    @base_url.setter
+    def base_url(self, url):
+        self._base_url = url
+
+    @property
+    def base_headers(self):
+        return self._base_headers
+
+    @base_headers.setter
+    def base_headers(self, dataclass_):
+        self._base_headers = dataclass_
+
+
+class Connector(_BaseContext):
+    """Consolidating constructor for instantiating a session.
+    """
+
+    def __init__(
+            self,
+            base_url: Optional[Text] = None,
+            client: Union[Client.block, Client.nonblock, ClientSession, Session] = Client.block()):
+        super().__init__(base_url=base_url, client=client)
+        # Set global, base headers for the sessions if requests.Session.  If aiohttp.ClientSession, set headers to
+        # settings to be consumed at a later time.
+        if self.base_headers:
+            self.client.add_headers(fields=self.base_headers.values)
+
+    @property
+    def alias(self) -> Text:
+        return ClientAliases.blocking.name if isinstance(self.client.session, Session) else (
+            ClientAliases.nonblocking.name if self.client.session == ClientSession else None)
