@@ -17,15 +17,15 @@ class Httpbin(Connector):
     """Represents an httpbin API mapping.
     """
 
-	def __init__(self):
-		super().__init__(base_url='https://httpbin.org')
+    def __init__(self):
+        super().__init__(base_url='https://httpbin.org')
 
-	@Get(path='ip')
-	def get_ip(self):
-		"""Retrieve remote IP address.
-		"""
+    @Get(path='ip')
+    def get_ip(self):
+        """Retrieve remote IP address.
+        """
 
-	@Post(path='/post')
+    @Post(path='/post')
     def send_body(self, body: Body):
         """Send a post request.
         """
@@ -75,10 +75,10 @@ class PokeApi(Connector):
     """Represents a PokéAPI mapping.
     """
 
-	@Get(path='pokemon/{no}')
-	def get_pokemon(self, no):
-		"""Retrieve Pokémon metadata.
-		"""
+    @Get(path='pokemon/{no}')
+    def get_pokemon(self, no):
+        """Retrieve Pokémon metadata.
+        """
 
 ```
 
