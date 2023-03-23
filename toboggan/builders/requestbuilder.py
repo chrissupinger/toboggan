@@ -1,5 +1,4 @@
 # Standard
-from collections import OrderedDict
 from functools import cached_property
 from typing import Dict, Optional, Text
 
@@ -7,8 +6,7 @@ from typing import Dict, Optional, Text
 from requests import Request
 
 # Local
-from .commoncontext import CommonContext
-from .methodcontext import MethodContext
+from ..models import CommonContext, MethodContext
 
 __all__ = ('RequestBuilder',)
 
@@ -40,41 +38,18 @@ class RequestBuilder:
             return cls(blocking, nonblocking, headers, query, method)
 
     @classmethod
-    def blocking_response(cls, mapping):
-        """Not yet implemented: files, auth, cookies, hooks
-        """
+    def get_state(cls, mapping):
         state = cls.State.stage(**mapping)
-        base_request = Request(method=state.method.verb, url=state.abs_url)
+        base = dict()
+        base.update(dict(method=state.method.verb))
+        base.update(dict(url=state.abs_url))
         if state.headers:
-            for key, val in state.headers.values.items():
-                base_request.headers[key] = val
+            base.update(dict(headers=state.headers.values))
         if state.method.body:
             if isinstance(state.method.body, Dict):
-                base_request.json = state.method.body
+                base.update(dict(json=state.method.body))
             elif isinstance(state.method.body, Text):
-                base_request.data = state.method.body
+                base.update(dict(data=state.method.body))
         if state.query:
-            for key, val in state.query.values.items():
-                base_request.params[key] = val
-        prepped_request = state.blocking.client.session.prepare_request(base_request)
-        try:
-            return state.blocking.client.session.send(prepped_request)
-        except Exception as err_msg:
-            return err_msg
-
-    @classmethod
-    def nonblocking_future(cls, mapping):
-        state = cls.State.stage(**mapping)
-        base = OrderedDict()
-        base['method'] = state.method.verb
-        base['url'] = state.abs_url
-        if state.headers:
-            base['headers'] = state.headers.values
-        if state.method.body:
-            if isinstance(state.method.body, Dict):
-                base['json'] = state.method.body
-            elif isinstance(state.method.body, Text):
-                base['data'] = state.method.body
-        if state.query:
-            base['params'] = state.query.values
+            base.update(dict(params=state.query.values))
         return base

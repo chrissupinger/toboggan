@@ -2,8 +2,14 @@
 from functools import wraps
 from typing import Dict, Text
 
+# Third-party
+from aiohttp import ClientSession
+from requests import Session
+
 # Local
-from ..models import MethodContext as _MethodContext, RequestBuilder as _RequestBuilder
+from ..builders import RequestBuilder as _RequestBuilder
+from ..models import MethodContext as _MethodContext, SessionContext
+from ..senders import Blocking
 from ..utils import ClientAliases
 
 __all__ = ('Connect', 'Delete', 'Get', 'Head', 'Options', 'Patch', 'Post', 'Put', 'Trace',)
@@ -24,10 +30,16 @@ class _Context(_MethodContext, _RequestBuilder):
             self.path_params = kwargs
             self.add_body(params=kwargs, annotations=func.__annotations__)
             mapping = {obj.alias: obj for obj in args + (self,)}
-            state_keys = mapping.keys()
-            if ClientAliases.blocking.name in state_keys:
-                return self.blocking_response(mapping)
-            return self.nonblocking_future(mapping)
+            state = self.get_state(mapping)
+            if ClientAliases.blocking.name in mapping.keys():
+                if isinstance(mapping[ClientAliases.blocking.name].client, SessionContext):
+                    session = mapping[ClientAliases.blocking.name].client.session
+                elif isinstance(mapping[ClientAliases.blocking.name].client, (Session, ClientSession)):
+                    session = mapping[ClientAliases.blocking.name].client
+                else:
+                    raise()
+                return Blocking.sender(session, state)
+            return state
         return arg_handler
 
 

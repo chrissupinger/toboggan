@@ -6,52 +6,64 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
 
 ## Blocking usage w/ [httpbin](https://github.com/postmanlabs/httpbin)
 
-### Your class
+### Model
 
 ``` python
-from toboggan import Connector, Get, Headers
+from toboggan import Connector, Body, Get, Headers
 
 
 @Headers({'Content-Type': 'application/json'})
 class Httpbin(Connector):
+    """Represents an httpbin API mapping.
+    """
 
 	def __init__(self):
 		super().__init__(base_url='https://httpbin.org')
 
 	@Get(path='ip')
 	def get_ip(self):
-		"""Retrieves your remote IP address.
+		"""Retrieve remote IP address.
 		"""
+
+	@Post(path='/post')
+    def send_body(self, body: Body):
+        """Send a post request.
+        """
 
 ```
 
-### Your instantiation
+### Instantiation
 
 ``` python
 httpbin = Httpbin()
 
 ```
 
-### Your invocation
+### Invocations
 
 ``` python
 my_ip = httpbin.get_ip()
+my_post = httpbin.send_body(body={'hello': 'world'})
 
 ```
 
-### Your response
+### Responses
 
 ``` python
 print(my_ip.status_code)
 # 200
-print(my_ip.json)
+print(my_ip.json())
 # {'origin': '<YOUR_IP_ADDRESS>'}
+print(my_post.status_code)
+# 200
+print(my_post.json())
+# {'args': {}, 'data': '{"hello": "world"}', 'files': {}, 'form': {}, 'headers': {'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br', 'Content-Length': '18', 'Content-Type': 'application/json', 'Host': 'httpbin.org', 'User-Agent': 'python-requests/2.28.2'}, 'json': {'hello': 'world'}, 'origin': '<YOUR_IP_ADDRESS>', 'url': 'https://httpbin.org/post'}
 
 ```
 
 ## Nonblocking usage w/ [PokéAPI](https://pokeapi.co/)
 
-### Your classes and instantiations
+### Model
 
 ``` python
 import asyncio
@@ -60,34 +72,44 @@ from toboggan import Client, Connector, Get, Headers
 
 @Headers({'Content-Type': 'application/json'})
 class PokeApi(Connector):
+    """Represents a PokéAPI mapping.
+    """
 
 	@Get(path='pokemon/{no}')
 	def get_pokemon(self, no):
-		"""Retrieves Pokémon metadata.
+		"""Retrieve Pokémon metadata.
 		"""
 
-		
-class PokeApiAsync:
+```
 
-    def __init__(self):
-        self.futures = list()
+### Methods
 
-    @staticmethod
-    async def get_pokemon(session, request):
-        async with session.request(**request) as response:
-            return await response.json()
+``` python
+async def get_pokemon(session, request):
+    async with session.request(**request) as response:
+        return await response.json()
 
-    async def get_gen_one(self, range_):
-        poke_api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
-        gen_one = [poke_api.get_pokemon(no=no) for no in range_]
-        async with poke_api.client.session(**poke_api.client.settings) as session:
-            for request in gen_one:
-                self.futures.append(asyncio.ensure_future(self.get_pokemon(session, request)))
-            responses = await asyncio.gather(*self.futures)
-            return responses
+async def get_all_pokemon(range_):
+    api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
+    pokemon = [api.get_pokemon(no=no) for no in range_]
+    async with api.client.session(**api.client.settings) as session:
+        futures = [asyncio.ensure_future(get_pokemon(session, request)) for request in pokemon]
+        responses = await asyncio.gather(*futures)
+        return responses
 
+```
 
-poke_api_async = PokeApiAsync()
-asyncio.run(poke_api_async.get_gen_one(range_=range(1, 152))
+### Invocation
+
+``` python
+responses = asyncio.run(get_all_pokemon(range_=range(1, 152)))
+
+```
+
+### Responses
+
+``` python
+print(responses)
+# [{'abilities': [{'ability': {'name': 'overgrow', 'url': 'https://pokeapi.co/api/v2/ability/65/'}, 'is_hidden': False, 'slot': 1}, {'ability': {'name': 'chlorophyll', 'url': 'https://pokeapi.co/api/v2/ability/34/'}, 'is_hidden': True, 'slot': 3}], 'base_experience': 64, 'forms': [{'name': 'bulbasaur', ...}]
 
 ```
