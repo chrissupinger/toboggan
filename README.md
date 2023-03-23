@@ -2,7 +2,7 @@
 
 Inspired by [prkumar's](https://github.com/prkumar) work on [Uplink](https://github.com/prkumar/uplink).
 
-toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's initial support for nonblocking requests with [AIOHTTP](https://github.com/aio-libs/aiohttp).
+toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's initial support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).
 
 ## Blocking usage w/ [httpbin](https://github.com/postmanlabs/httpbin)
 
