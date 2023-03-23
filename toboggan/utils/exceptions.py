@@ -44,3 +44,4 @@ class MissingRequestStateAttribute(Exception):
     def __init__(self, state_keys, valid_keys):
         self.message = 'State keys detected: {}.  '\
                        'Valid state keys: {}.'.format(', '.join(state_keys), ', '.join(valid_keys))
+        super().__init__(self.message)
