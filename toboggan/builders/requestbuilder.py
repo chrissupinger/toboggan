@@ -33,6 +33,22 @@ class RequestBuilder:
                     path = path.replace('/', '', 1)
             return '/'.join((base, path,))
 
+        @cached_property
+        def request_config(self):
+            base = dict()
+            base.update(dict(method=self.method.verb))
+            base.update(dict(url=self.abs_url))
+            if self.headers:
+                base.update(dict(headers=self.headers.values))
+            if self.method.body:
+                if isinstance(self.method.body, Dict):
+                    base.update(dict(json=self.method.body))
+                elif isinstance(self.method.body, Text):
+                    base.update(dict(data=self.method.body))
+            if self.query:
+                base.update(dict(params=self.query.values))
+            return base
+
         @classmethod
         def stage(cls, blocking=None, nonblocking=None, headers=None, query=None, method=None):
             return cls(blocking, nonblocking, headers, query, method)
@@ -40,16 +56,4 @@ class RequestBuilder:
     @classmethod
     def get_state(cls, mapping):
         state = cls.State.stage(**mapping)
-        base = dict()
-        base.update(dict(method=state.method.verb))
-        base.update(dict(url=state.abs_url))
-        if state.headers:
-            base.update(dict(headers=state.headers.values))
-        if state.method.body:
-            if isinstance(state.method.body, Dict):
-                base.update(dict(json=state.method.body))
-            elif isinstance(state.method.body, Text):
-                base.update(dict(data=state.method.body))
-        if state.query:
-            base.update(dict(params=state.query.values))
-        return base
+        return state

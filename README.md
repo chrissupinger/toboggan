@@ -66,7 +66,6 @@ print(my_post.json())
 ### Model
 
 ``` python
-import asyncio
 from toboggan import Client, Connector, Get, Headers
 
 
@@ -82,34 +81,57 @@ class PokeApi(Connector):
 
 ```
 
-### Methods
+### Invocations
+
+#### 1.  Request
 
 ``` python
-async def get_pokemon(session, request):
-    async with session.request(**request) as response:
-        return await response.json()
+import asyncio
 
+
+async def fetch(session, request):
+    async with session.request(**request) as response:
+    json_ = await response.json()
+    return json_['species']['name']
+
+```
+
+#### 2.  Requests handler
+
+##### Example A. Using an event loop
+
+``` python
 async def get_all_pokemon(range_):
     api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
     pokemon = [api.get_pokemon(no=no) for no in range_]
     async with api.client.session(**api.client.settings) as session:
-        futures = [asyncio.ensure_future(get_pokemon(session, request)) for request in pokemon]
-        responses = await asyncio.gather(*futures)
+        responses = await asyncio.gather(*[fetch(session, request) for request in pokemon])
         return responses
+
+loop = asyncio.get_event_loop()
+results = loop.run_until_complete(get_all_pokemon(range_=range(1, 152)))
 
 ```
 
-### Invocation
+##### Example B. Using futures
 
 ``` python
-responses = asyncio.run(get_all_pokemon(range_=range(1, 152)))
+async def get_all_pokemon(range_):
+    api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
+    pokemon = [api.get_pokemon(no=no) for no in range_]
+    async with api.client.session(**api.client.settings) as session:
+        futures = [asyncio.ensure_future(fetch(session, request)) for request in pokemon]
+        responses = await asyncio.gather(*futures)
+        return responses
+
+results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
 
 ```
 
 ### Responses
 
 ``` python
-print(responses)
-# [{'abilities': [{'ability': {'name': 'overgrow', 'url': 'https://pokeapi.co/api/v2/ability/65/'}, 'is_hidden': False, 'slot': 1}, {'ability': {'name': 'chlorophyll', 'url': 'https://pokeapi.co/api/v2/ability/34/'}, 'is_hidden': True, 'slot': 3}], 'base_experience': 64, 'forms': [{'name': 'bulbasaur', ...}]
+print(results)
+# ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard', 'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree', 'weedle', 'kakuna', 'beedrill', 'pidgey', 'pidgeotto', 'pidgeot', 'rattata', 'raticate', 'spearow', 'fearow', 'ekans', 'arbok', 'pikachu', 'raichu', 'sandshrew', 'sandslash', 'nidoran-f', 'nidorina', 'nidoqueen', 'nidoran-m', 'nidorino', 'nidoking', 'clefairy', 'clefable', 'vulpix', 'ninetales', 'jigglypuff', 'wigglytuff', 'zubat', 'golbat', 'oddish', 'gloom', 'vileplume', 'paras', 'parasect', 'venonat', 'venomoth', 'diglett', 'dugtrio', 'meowth', 'persian', 'psyduck', 'golduck', 'mankey', 'primeape', 'growlithe', 'arcanine', 'poliwag', 'poliwhirl', 'poliwrath', 'abra', 'kadabra', 'alakazam', 'machop', 'machoke', 'machamp', 'bellsprout', 'weepinbell', 'victreebel', 'tentacool', 'tentacruel', 'geodude', 'graveler', 'golem', 'ponyta', 'rapidash', 'slowpoke', 'slowbro', 'magnemite', 'magneton', 'farfetchd', 'doduo', 'dodrio', 'seel', 'dewgong', 'grimer', 'muk', 'shellder', 'cloyster', 'gastly', 'haunter', 'gengar', 'onix', 'drowzee', 'hypno', 'krabby', 'kingler', 'voltorb', 'electrode', 'exeggcute', 'exeggutor', 'cubone', 'marowak', 'hitmonlee', 'hitmonchan', 'lickitung', 'koffing', 'weezing', 'rhyhorn', 'rhydon', 'chansey', 'tangela', 'kangaskhan', 'horsea', 'seadra', 'goldeen', 'seaking', 'staryu', 'starmie', 'mr-mime', 'scyther', 'jynx', 'electabuzz', 'magmar', 'pinsir', 'tauros', 'magikarp', 'gyarados', 'lapras', 'ditto', 'eevee', 'vaporeon', 'jolteon', 'flareon', 'porygon', 'omanyte', 'omastar', 'kabuto', 'kabutops', 'aerodactyl', 'snorlax', 'articuno', 'zapdos', 'moltres', 'dratini', 'dragonair', 'dragonite', 'mewtwo', 'mew']
 
 ```

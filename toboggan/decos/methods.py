@@ -10,7 +10,7 @@ from requests import Session
 from ..builders import RequestBuilder as _RequestBuilder
 from ..models import MethodContext as _MethodContext, SessionContext
 from ..senders import Blocking
-from ..utils import ClientAliases
+from ..utils import ClientAliases, exceptions
 
 __all__ = ('Connect', 'Delete', 'Get', 'Head', 'Options', 'Patch', 'Post', 'Put', 'Trace',)
 
@@ -37,9 +37,9 @@ class _Context(_MethodContext, _RequestBuilder):
                 elif isinstance(mapping[ClientAliases.blocking.name].client, (Session, ClientSession)):
                     session = mapping[ClientAliases.blocking.name].client
                 else:
-                    raise()
+                    raise exceptions.MissingRequestStateAttribute(mapping.keys(), vars(state).keys())
                 return Blocking.sender(session, state)
-            return state
+            return state.request_config
         return arg_handler
 
 
