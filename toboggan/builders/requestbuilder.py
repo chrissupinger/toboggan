@@ -1,12 +1,10 @@
 # Standard
+from collections import ChainMap
 from functools import cached_property
 from typing import Dict, Optional, Text
 
-# Third-party
-from requests import Request
-
 # Local
-from ..models import CommonContext, MethodContext
+from ..models import DecoCommonContext, MethodContext, RequestCommonContext
 
 __all__ = ('RequestBuilder',)
 
@@ -18,8 +16,8 @@ class RequestBuilder:
         def __init__(self, blocking, nonblocking, headers, query, method):
             self.blocking: Optional = blocking
             self.nonblocking: Optional = nonblocking
-            self.headers: Optional[CommonContext] = headers
-            self.query: Optional[CommonContext] = query
+            self.headers: Optional[DecoCommonContext] = headers
+            self.query: Optional[DecoCommonContext] = query
             self.method: Optional[MethodContext] = method
 
         @cached_property
@@ -33,27 +31,30 @@ class RequestBuilder:
                     path = path.replace('/', '', 1)
             return '/'.join((base, path,))
 
-        @cached_property
-        def request_config(self):
-            base = dict()
-            base.update(dict(method=self.method.verb))
-            base.update(dict(url=self.abs_url))
-            if self.headers:
-                base.update(dict(headers=self.headers.values))
-            if self.method.body:
-                if isinstance(self.method.body, Dict):
-                    base.update(dict(json=self.method.body))
-                elif isinstance(self.method.body, Text):
-                    base.update(dict(data=self.method.body))
-            if self.query:
-                base.update(dict(params=self.query.values))
-            return base
-
         @classmethod
         def stage(cls, blocking=None, nonblocking=None, headers=None, query=None, method=None):
             return cls(blocking, nonblocking, headers, query, method)
 
+    class Config(RequestCommonContext):
+
+        def __init__(self, state):
+            super().__init__()
+            self.method = state.method.verb
+            self.url = state.abs_url
+            if state.headers:
+                self.headers = state.headers.values
+            if state.method.body:
+                if isinstance(state.method.body, Dict):
+                    self.json = state.method.body
+                elif isinstance(state.method.body, Text):
+                    self.data = state.method.body
+            if state.query:
+                for key, val in state.query.values.items():
+                    self.params[key] = val
+            if state.method.query:
+                for key, val in state.method.query.items():
+                    self.params[key] = val
+
     @classmethod
     def get_state(cls, mapping):
-        state = cls.State.stage(**mapping)
-        return state
+        return cls.Config(cls.State.stage(**mapping))

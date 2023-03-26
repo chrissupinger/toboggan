@@ -2,11 +2,11 @@
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Text
 
-__all__ = ('CommonContext',)
+__all__ = ('DecoCommonContext',)
 
 
 @dataclass(slots=True, init=True)
-class CommonContext:
+class DecoCommonContext:
     alias: Optional[Text] = field(default=None)
     values: Optional[Dict] = field(default=None)
 

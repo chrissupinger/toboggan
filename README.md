@@ -18,16 +18,21 @@ class Httpbin(Connector):
     """
 
     def __init__(self):
-        super().__init__(base_url='https://httpbin.org')
+        super().__init__(base_url='https://httpbin.org', client=Client.block())
 
-    @Get(path='ip')
+    @Get(path='/ip')
     def get_ip(self):
-        """Retrieve remote IP address.
+        """Send a GET request retrieve your remote IP address.
+        """
+
+    @Get(path='/get')
+    def get_w_query_params(self, hello: QueryParam):
+        """Send a GET request w/ query parameters.
         """
 
     @Post(path='/post')
-    def send_body(self, body: Body):
-        """Send a post request.
+    def post_w_body(self, body: Body):
+        """Send a POST request w/ body.
         """
 
 ```
@@ -42,21 +47,22 @@ httpbin = Httpbin()
 ### Invocations
 
 ``` python
-my_ip = httpbin.get_ip()
-my_post = httpbin.send_body(body={'hello': 'world'})
+get_ip = httpbin.get_ip()
+get_w_query_params = httpbin.get_w_query_params(hello='world')
+post_w_body = httpbin.post_w_body(body={'hello': 'world'})
 
 ```
 
 ### Responses
 
 ``` python
-print(my_ip.status_code)
+print(get_ip.status_code)
 # 200
-print(my_ip.json())
+print(get_ip.json())
 # {'origin': '<YOUR_IP_ADDRESS>'}
-print(my_post.status_code)
-# 200
-print(my_post.json())
+print(get_w_query_params.json())
+# {'args': {'hello': 'world'}, 'headers': {'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'application/json', 'Host': 'httpbin.org', 'User-Agent': 'python-requests/2.28.2'}, 'origin': '<YOUR_IP_ADDRESS>', 'url': 'https://httpbin.org/get?hello=world'}
+print(post_w_body.json())
 # {'args': {}, 'data': '{"hello": "world"}', 'files': {}, 'form': {}, 'headers': {'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br', 'Content-Length': '18', 'Content-Type': 'application/json', 'Host': 'httpbin.org', 'User-Agent': 'python-requests/2.28.2'}, 'json': {'hello': 'world'}, 'origin': '<YOUR_IP_ADDRESS>', 'url': 'https://httpbin.org/post'}
 
 ```
@@ -74,7 +80,7 @@ class PokeApi(Connector):
     """Represents a PokéAPI mapping.
     """
 
-    @Get(path='pokemon/{no}')
+    @Get(path='/pokemon/{no}')
     def get_pokemon(self, no):
         """Retrieve Pokémon metadata.
         """
@@ -101,10 +107,11 @@ async def fetch(session, request):
 ##### Example A. Using an event loop
 
 ``` python
+api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
+
 async def get_all_pokemon(range_):
-    api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
     pokemon = [api.get_pokemon(no=no) for no in range_]
-    async with api.client.session(**api.client.settings) as session:
+    async with api.session(**api.settings) as session:
         responses = await asyncio.gather(*[fetch(session, request) for request in pokemon])
         return responses
 
@@ -119,7 +126,7 @@ results = loop.run_until_complete(get_all_pokemon(range_=range(1, 152)))
 async def get_all_pokemon(range_):
     api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
     pokemon = [api.get_pokemon(no=no) for no in range_]
-    async with api.client.session(**api.client.settings) as session:
+    async with api.session(**api.settings) as session:
         futures = [asyncio.ensure_future(fetch(session, request)) for request in pokemon]
         responses = await asyncio.gather(*futures)
         return responses

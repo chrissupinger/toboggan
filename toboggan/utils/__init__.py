@@ -1,3 +1,3 @@
 from .aliases import *
-from .annotations import Body
+from .annotations import *
 from .exceptions import *

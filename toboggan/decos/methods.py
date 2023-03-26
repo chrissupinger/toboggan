@@ -8,7 +8,7 @@ from requests import Session
 
 # Local
 from ..builders import RequestBuilder as _RequestBuilder
-from ..models import MethodContext as _MethodContext, SessionContext
+from ..models import MethodContext as _MethodContext
 from ..senders import Blocking
 from ..utils import ClientAliases, exceptions
 
@@ -28,17 +28,13 @@ class _Context(_MethodContext, _RequestBuilder):
         @wraps(func)
         def arg_handler(*args, **kwargs):
             self.path_params = kwargs
-            self.add_body(params=kwargs, annotations=func.__annotations__)
+            self.set_mathod_from_args(params=kwargs, annotations=func.__annotations__)
             mapping = {obj.alias: obj for obj in args + (self,)}
             state = self.get_state(mapping)
             if ClientAliases.blocking.name in mapping.keys():
-                if isinstance(mapping[ClientAliases.blocking.name].client, SessionContext):
-                    session = mapping[ClientAliases.blocking.name].client.session
-                elif isinstance(mapping[ClientAliases.blocking.name].client, (Session, ClientSession)):
-                    session = mapping[ClientAliases.blocking.name].client
-                else:
-                    raise exceptions.MissingRequestStateAttribute(mapping.keys(), vars(state).keys())
-                return Blocking.sender(session, state)
+                if isinstance(mapping[ClientAliases.blocking.name].session, Session):
+                    return Blocking.sender(mapping[ClientAliases.blocking.name].session, state)
+                return Blocking.sender(mapping[ClientAliases.blocking.name].session, state)
             return state.request_config
         return arg_handler
 

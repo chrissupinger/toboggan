@@ -3,15 +3,19 @@ from aiohttp import ClientSession
 from requests import Session
 
 # Local
-from .models import SessionContext as _SessionContext
+from .models import ClientContext as _ClientContext
 from .utils import exceptions
 
 __all__ = ('Client',)
 
 
 class Client:
+    """Constructs the native toboggan clients.
+    """
 
-    class SessionState(_SessionContext):
+    class State(_ClientContext):
+        """Constructs the elements required to form a toboggan client.
+        """
 
         def __init__(self, session, settings):
             super().__init__(session, settings)
@@ -22,7 +26,9 @@ class Client:
 
     @classmethod
     def block(cls, session=Session, **kwargs):
-        session_state = cls.SessionState.stage(session=session(), settings=kwargs)
+        """Invokes a blocking session using requests.Session and with the settings provided.
+        """
+        session_state = cls.State.stage(session=session(), settings=kwargs)
         _attrs = session.__attrs__
         # Checks for valid arguments IAW the client and its session.  If invalid parameter detected, raises
         # utils.exceptions.InvalidSessionSetting.
@@ -34,7 +40,10 @@ class Client:
 
     @classmethod
     def nonblock(cls, session=ClientSession, **kwargs):
-        session_state = cls.SessionState.stage(session=session, settings=kwargs)
+        """Sets a nonblocking method (aiohttp.ClientSession) as the session and without invocation.  Also sets access to
+        passed session settings.
+        """
+        session_state = cls.State.stage(session=session, settings=kwargs)
         _attrs = session.__init__.__annotations__.keys()
         # Checks for valid arguments IAW the client and its session.  If invalid parameter detected, raises
         # utils.exceptions.InvalidSessionSetting.

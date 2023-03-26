@@ -4,7 +4,7 @@ from inspect import isclass, isfunction
 from typing import Dict
 
 # Local
-from ..models import CommonContext as _HeadersContext
+from ..models import DecoCommonContext as _HeadersContext
 from ..utils import ContextAliases
 
 __all__ = ('Headers',)

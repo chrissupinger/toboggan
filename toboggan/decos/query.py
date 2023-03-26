@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Dict
 
 # Local
-from ..models import CommonContext as _QueryParamsContext
+from ..models import DecoCommonContext as _QueryParamsContext
 from ..utils import ContextAliases
 
 __all__ = ('Query',)
