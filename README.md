@@ -9,7 +9,7 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
 ### Model
 
 ``` python
-from toboggan import Connector, Body, Get, Headers
+from toboggan import Body, Connector, Get, Headers
 
 
 @Headers({'Content-Type': 'application/json'})
@@ -57,13 +57,49 @@ post_w_body = httpbin.post_w_body(body={'hello': 'world'})
 
 ``` python
 print(get_ip.status_code)
-# 200
+200
+
 print(get_ip.json())
-# {'origin': '<YOUR_IP_ADDRESS>'}
+{
+    'origin': '<YOUR_IP_ADDRESS>'
+}
+
 print(get_w_query_params.json())
-# {'args': {'hello': 'world'}, 'headers': {'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'application/json', 'Host': 'httpbin.org', 'User-Agent': 'python-requests/2.28.2'}, 'origin': '<YOUR_IP_ADDRESS>', 'url': 'https://httpbin.org/get?hello=world'}
+{
+    'args': {
+        'hello': 'world'
+    },
+    'headers': {
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/json',
+        'Host': 'httpbin.org',
+        'User-Agent': 'python-requests/2.28.2'
+    },
+    'origin': '<YOUR_IP_ADDRESS>',
+    'url': 'https://httpbin.org/get?hello=world'
+}
+
 print(post_w_body.json())
-# {'args': {}, 'data': '{"hello": "world"}', 'files': {}, 'form': {}, 'headers': {'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br', 'Content-Length': '18', 'Content-Type': 'application/json', 'Host': 'httpbin.org', 'User-Agent': 'python-requests/2.28.2'}, 'json': {'hello': 'world'}, 'origin': '<YOUR_IP_ADDRESS>', 'url': 'https://httpbin.org/post'}
+{
+    'args': {},
+    'data': '{"hello": "world"}',
+    'files': {},
+    'form': {},
+    'headers': {
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Length': '18',
+        'Content-Type': 'application/json',
+        'Host': 'httpbin.org',
+        'User-Agent': 'python-requests/2.28.2'
+    },
+    'json': {
+        'hello': 'world'
+    },
+    'origin': '<YOUR_IP_ADDRESS>',
+    'url': 'https://httpbin.org/post'
+}
 
 ```
 
@@ -139,6 +175,26 @@ results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
 
 ``` python
 print(results)
-# ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard', 'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree', 'weedle', 'kakuna', 'beedrill', 'pidgey', 'pidgeotto', 'pidgeot', 'rattata', 'raticate', 'spearow', 'fearow', 'ekans', 'arbok', 'pikachu', 'raichu', 'sandshrew', 'sandslash', 'nidoran-f', 'nidorina', 'nidoqueen', 'nidoran-m', 'nidorino', 'nidoking', 'clefairy', 'clefable', 'vulpix', 'ninetales', 'jigglypuff', 'wigglytuff', 'zubat', 'golbat', 'oddish', 'gloom', 'vileplume', 'paras', 'parasect', 'venonat', 'venomoth', 'diglett', 'dugtrio', 'meowth', 'persian', 'psyduck', 'golduck', 'mankey', 'primeape', 'growlithe', 'arcanine', 'poliwag', 'poliwhirl', 'poliwrath', 'abra', 'kadabra', 'alakazam', 'machop', 'machoke', 'machamp', 'bellsprout', 'weepinbell', 'victreebel', 'tentacool', 'tentacruel', 'geodude', 'graveler', 'golem', 'ponyta', 'rapidash', 'slowpoke', 'slowbro', 'magnemite', 'magneton', 'farfetchd', 'doduo', 'dodrio', 'seel', 'dewgong', 'grimer', 'muk', 'shellder', 'cloyster', 'gastly', 'haunter', 'gengar', 'onix', 'drowzee', 'hypno', 'krabby', 'kingler', 'voltorb', 'electrode', 'exeggcute', 'exeggutor', 'cubone', 'marowak', 'hitmonlee', 'hitmonchan', 'lickitung', 'koffing', 'weezing', 'rhyhorn', 'rhydon', 'chansey', 'tangela', 'kangaskhan', 'horsea', 'seadra', 'goldeen', 'seaking', 'staryu', 'starmie', 'mr-mime', 'scyther', 'jynx', 'electabuzz', 'magmar', 'pinsir', 'tauros', 'magikarp', 'gyarados', 'lapras', 'ditto', 'eevee', 'vaporeon', 'jolteon', 'flareon', 'porygon', 'omanyte', 'omastar', 'kabuto', 'kabutops', 'aerodactyl', 'snorlax', 'articuno', 'zapdos', 'moltres', 'dratini', 'dragonair', 'dragonite', 'mewtwo', 'mew']
+['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard',
+'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree', 'weedle',
+'kakuna', 'beedrill', 'pidgey', 'pidgeotto', 'pidgeot', 'rattata', 'raticate',
+'spearow', 'fearow', 'ekans', 'arbok', 'pikachu', 'raichu', 'sandshrew', 'sandslash',
+'nidoran-f', 'nidorina', 'nidoqueen', 'nidoran-m', 'nidorino', 'nidoking', 'clefairy',
+'clefable', 'vulpix', 'ninetales', 'jigglypuff', 'wigglytuff', 'zubat', 'golbat',
+'oddish', 'gloom', 'vileplume', 'paras', 'parasect', 'venonat', 'venomoth', 'diglett',
+'dugtrio', 'meowth', 'persian', 'psyduck', 'golduck', 'mankey', 'primeape', 'growlithe',
+'arcanine', 'poliwag', 'poliwhirl', 'poliwrath', 'abra', 'kadabra', 'alakazam',
+'machop', 'machoke', 'machamp', 'bellsprout', 'weepinbell', 'victreebel', 'tentacool',
+'tentacruel', 'geodude', 'graveler', 'golem', 'ponyta', 'rapidash', 'slowpoke',
+'slowbro', 'magnemite', 'magneton', 'farfetchd', 'doduo', 'dodrio', 'seel', 'dewgong',
+'grimer', 'muk', 'shellder', 'cloyster', 'gastly', 'haunter', 'gengar', 'onix',
+'drowzee', 'hypno', 'krabby', 'kingler', 'voltorb', 'electrode', 'exeggcute', 'exeggutor',
+'cubone', 'marowak', 'hitmonlee', 'hitmonchan', 'lickitung', 'koffing', 'weezing',
+'rhyhorn', 'rhydon', 'chansey', 'tangela', 'kangaskhan', 'horsea', 'seadra', 'goldeen',
+'seaking', 'staryu', 'starmie', 'mr-mime', 'scyther', 'jynx', 'electabuzz', 'magmar',
+'pinsir', 'tauros', 'magikarp', 'gyarados', 'lapras', 'ditto', 'eevee', 'vaporeon',
+'jolteon', 'flareon', 'porygon', 'omanyte', 'omastar', 'kabuto', 'kabutops', 'aerodactyl',
+'snorlax', 'articuno', 'zapdos', 'moltres', 'dratini', 'dragonair', 'dragonite',
+'mewtwo', 'mew']
 
 ```

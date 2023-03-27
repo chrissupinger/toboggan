@@ -1,5 +1,6 @@
 # Standard
-from dataclasses import InitVar, asdict, dataclass, field
+from dataclasses import asdict, dataclass, field
+from types import MappingProxyType
 from typing import Dict, Optional, Text
 
 
@@ -17,7 +18,7 @@ class RequestCommonContext:
 
     @property
     def request_config(self):
-        return asdict(self)
+        return MappingProxyType(asdict(self))
 
 
 @dataclass(slots=True, init=True)

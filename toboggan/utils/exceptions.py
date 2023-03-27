@@ -1,5 +1,5 @@
 # Standard
-from typing import Iterable, Text
+from typing import Any, Iterable, Text
 
 __all__ = ('InvalidSessionSetting', 'NoBaseUrl', 'UnrecognizedClientType', 'MissingRequestStateAttribute',)
 
@@ -29,7 +29,7 @@ class UnrecognizedClientType(Exception):
     """Raised when a client is invalid or incompatible with toboggan.
     """
 
-    def __init__(self, client):
+    def __init__(self, client: Any):
         self.message = f'`{client}` is either invalid or incompatible.  '\
                        'Valid client types: toboggan.Client (block or nonblock), request.Session, aiohttp.ClientSession.  '\
                        'This is required to instantiate a Connector object.  '\
@@ -41,7 +41,7 @@ class MissingRequestStateAttribute(Exception):
     """Raised when the request builder does not receive required objects to create a request state.
     """
 
-    def __init__(self, state_keys, valid_keys):
+    def __init__(self, state_keys: Iterable, valid_keys: Iterable):
         self.message = 'State keys detected: {}.  '\
                        'Valid state keys: {}.'.format(', '.join(state_keys), ', '.join(valid_keys))
         super().__init__(self.message)

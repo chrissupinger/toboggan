@@ -1,5 +1,6 @@
 # Standard
 from functools import wraps
+from types import MappingProxyType
 from typing import Dict, Text
 
 # Third-party
@@ -29,7 +30,7 @@ class _Context(_MethodContext, _RequestBuilder):
         def arg_handler(*args, **kwargs):
             self.path_params = kwargs
             self.set_mathod_from_args(params=kwargs, annotations=func.__annotations__)
-            mapping = {obj.alias: obj for obj in args + (self,)}
+            mapping = MappingProxyType({obj.alias: obj for obj in args + (self,)})
             state = self.get_state(mapping)
             if ClientAliases.blocking.name in mapping.keys():
                 if isinstance(mapping[ClientAliases.blocking.name].session, Session):
