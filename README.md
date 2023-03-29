@@ -148,6 +148,8 @@ async def get_all_pokemon(range_):
         responses = await asyncio.gather(*[fetch(session, request) for request in pokemon])
         return responses
 
+results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
+
 ```
 
 ##### Example B. Using an event loop; Python 3.6 and below
