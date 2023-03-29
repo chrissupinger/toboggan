@@ -138,7 +138,7 @@ async def fetch(session, request):
 
 #### 2.  Requests handler
 
-##### Example A. Using asyncio.run; Python 3.7 and above
+##### Example A. Using asyncio.run
 
 ``` python
 async def get_all_pokemon(range_):
@@ -152,7 +152,7 @@ results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
 
 ```
 
-##### Example B. Using an event loop; Python 3.6 and below
+##### Example B. Using an event loop
 
 ``` python
 loop = asyncio.new_event_loop()
