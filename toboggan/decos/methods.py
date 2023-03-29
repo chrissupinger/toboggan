@@ -4,14 +4,13 @@ from types import MappingProxyType
 from typing import Dict, Text
 
 # Third-party
-from aiohttp import ClientSession
 from requests import Session
 
 # Local
 from ..builders import RequestBuilder as _RequestBuilder
 from ..models import MethodContext as _MethodContext
 from ..senders import Blocking
-from ..utils import ClientAliases, exceptions
+from ..utils import ClientAliases
 
 __all__ = ('Connect', 'Delete', 'Get', 'Head', 'Options', 'Patch', 'Post', 'Put', 'Trace',)
 
@@ -29,7 +28,7 @@ class _Context(_MethodContext, _RequestBuilder):
         @wraps(func)
         def arg_handler(*args, **kwargs):
             self.path_params = kwargs
-            self.set_mathod_from_args(params=kwargs, annotations=func.__annotations__)
+            self.set_method_from_args(params=kwargs, annotations=func.__annotations__)
             mapping = MappingProxyType({obj.alias: obj for obj in args + (self,)})
             state = self.get_state(mapping)
             if ClientAliases.blocking.name in mapping.keys():

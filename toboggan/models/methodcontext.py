@@ -18,7 +18,7 @@ class MethodContext:
     def __repr__(self):
         return f'{self.__class__.__name__}(type={self.alias}, verb={self.verb}, path={self.path_w_params}, body={self.body})'
 
-    def set_mathod_from_args(self, params: Dict, annotations: Dict) -> None:
+    def set_method_from_args(self, params: Dict, annotations: Dict) -> None:
         if annotations:
             for key, val in annotations.items():
                 if val.__qualname__ == Body.__qualname__:

@@ -9,7 +9,7 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
 ### Model
 
 ``` python
-from toboggan import Body, Connector, Get, Headers
+from toboggan import Body, Client, Connector, Get, Headers, Post, QueryParam
 
 
 @Headers({'Content-Type': 'application/json'})
@@ -108,6 +108,7 @@ print(post_w_body.json())
 ### Model
 
 ``` python
+import asyncio
 from toboggan import Client, Connector, Get, Headers
 
 
@@ -128,9 +129,6 @@ class PokeApi(Connector):
 #### 1.  Request
 
 ``` python
-import asyncio
-
-
 async def fetch(session, request):
     async with session.request(**request) as response:
     json_ = await response.json()
@@ -140,9 +138,23 @@ async def fetch(session, request):
 
 #### 2.  Requests handler
 
-##### Example A. Using an event loop
+##### Example A. Using asyncio.run; Python 3.7 and above
 
 ``` python
+async def get_all_pokemon(range_):
+    api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
+    pokemon = [api.get_pokemon(no=no) for no in range_]
+    async with api.session(**api.settings) as session:
+        responses = await asyncio.gather(*[fetch(session, request) for request in pokemon])
+        return responses
+
+```
+
+##### Example B. Using an event loop; Python 3.6 and below
+
+``` python
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
 
 async def get_all_pokemon(range_):
@@ -151,12 +163,11 @@ async def get_all_pokemon(range_):
         responses = await asyncio.gather(*[fetch(session, request) for request in pokemon])
         return responses
 
-loop = asyncio.get_event_loop()
 results = loop.run_until_complete(get_all_pokemon(range_=range(1, 152)))
 
 ```
 
-##### Example B. Using futures
+##### Example C. Using futures and asyncio.run
 
 ``` python
 async def get_all_pokemon(range_):
