@@ -19,7 +19,7 @@ class NoBaseUrl(Exception):
     """
 
     def __init__(self):
-        self.message = 'Parameter `base_url` is missing.  '\
+        self.message = 'Parameter `base_url` is missing or is invalid.  '\
                        'This is required to instantiate a Connector object.  '\
                        'This can be declared within a model or at instantiation.'
         super().__init__(self.message)

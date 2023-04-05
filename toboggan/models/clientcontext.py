@@ -35,7 +35,3 @@ class ClientContext:
     def settings(self, fields: Dict) -> None:
         for key, val in fields.items():
             self._settings[key] = val
-
-    @property
-    def context(self):
-        return self.session, self.settings

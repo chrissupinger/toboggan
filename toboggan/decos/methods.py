@@ -3,19 +3,15 @@ from functools import wraps
 from types import MappingProxyType
 from typing import Dict, Text
 
-# Third-party
-from requests import Session
-
 # Local
-from ..builders import RequestBuilder as _RequestBuilder
+from ..builders import RequestBuilder as _RequestBuilder, SenderBuilder as _SenderBuilder
 from ..models import MethodContext as _MethodContext
-from ..senders import Blocking
 from ..utils import ClientAliases
 
 __all__ = ('Connect', 'Delete', 'Get', 'Head', 'Options', 'Patch', 'Post', 'Put', 'Trace',)
 
 
-class _Context(_MethodContext, _RequestBuilder):
+class _Context(_MethodContext, _RequestBuilder, _SenderBuilder):
     """Constructor for the base context of an HTTP method.
     """
 
@@ -30,12 +26,12 @@ class _Context(_MethodContext, _RequestBuilder):
             self.path_params = kwargs
             self.set_method_from_args(params=kwargs, annotations=func.__annotations__)
             mapping = MappingProxyType({obj.alias: obj for obj in args + (self,)})
-            state = self.get_state(mapping)
             if ClientAliases.blocking.name in mapping.keys():
-                if isinstance(mapping[ClientAliases.blocking.name].session, Session):
-                    return Blocking.sender(mapping[ClientAliases.blocking.name].session, state)
-                return Blocking.sender(mapping[ClientAliases.blocking.name].session, state)
-            return state.request_config
+                return self.get_blocking_response(
+                    mapping[ClientAliases.blocking.name].session, self.get_state(mapping))
+            elif ClientAliases.nonblocking.name in mapping.keys():
+                return self.get_nonblocking_response(
+                    mapping[ClientAliases.nonblocking.name].session, self.get_state(mapping))
         return arg_handler
 
 

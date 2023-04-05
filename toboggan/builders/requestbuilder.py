@@ -1,10 +1,10 @@
 # Standard
-from collections import ChainMap
 from functools import cached_property
 from typing import Dict, Optional, Text
 
 # Local
 from ..models import DecoCommonContext, MethodContext, RequestCommonContext
+from ..utils import exceptions
 
 __all__ = ('RequestBuilder',)
 
@@ -22,8 +22,13 @@ class RequestBuilder:
 
         @cached_property
         def abs_url(self):
-            base = self.blocking.base_url if self.blocking else (self.nonblocking.base_url if self.nonblocking else None)
             path = self.method.path_w_params
+            if self.blocking:
+                base = self.blocking.base_url
+            elif self.nonblocking:
+                base = self.nonblocking.base_url
+            else:
+                raise exceptions.NoBaseUrl()
             if base.endswith('/'):
                 base = base.rstrip('/')
             if path:
