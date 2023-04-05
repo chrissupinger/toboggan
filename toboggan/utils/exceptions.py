@@ -31,7 +31,7 @@ class UnrecognizedClientType(Exception):
 
     def __init__(self, client: Any):
         self.message = f'`{client}` is either invalid or incompatible.  '\
-                       'Valid client types: toboggan.Client (block or nonblock), request.Session, aiohttp.ClientSession.  '\
+                       'Valid client types: toboggan.Client (block or nonblock), requests.Session, aiohttp.ClientSession.  '\
                        'This is required to instantiate a Connector object.  '\
                        'This can be declared within a model or at instantiation.'
         super().__init__(self.message)
