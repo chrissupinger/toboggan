@@ -1,5 +1,5 @@
 # Standard
-from typing import Tuple
+from typing import Dict, Optional, Text, Tuple, Union
 
 # Third-party
 from aiohttp import ClientResponse, ClientSession
@@ -13,7 +13,7 @@ __all__ = ('SenderBuilder',)
 
 class SenderBuilder:
     
-    def __init__(self, session, state):
+    def __init__(self, session: Union[Session, ClientSession], state):
         if isinstance(session, Session):
             self.response = self.Sender.blocking_fetch(session, state)
         elif isinstance(session, ClientSession):
@@ -26,19 +26,22 @@ class SenderBuilder:
             self.state = state
         
         @classmethod
-        def blocking_fetch(cls, session, state):
+        def blocking_fetch(cls, session: Session, state) -> Response:
             prepped = session.prepare_request(Request(**state.request_config))
             return session.send(prepped)
         
         @classmethod
-        async def nonblocking_fetch(cls, session, state):
+        async def nonblocking_fetch(cls, session: ClientSession, state) -> Tuple[int, Optional[Text], Optional[Dict]]:
             async with session.request(**state.request_config) as response:
-                return response.status, await response.text(), await response.json()
+                status = response.status
+                text = await response.text()
+                json = await response.json()
+                return status, text, json
     
     class BlockingResponse(_ResponseContext):
         
         def __init__(self, response: Response):
-            super().__init__(response.status_code, response.text)
+            super().__init__(status_code=response.status_code, text=response.text)
             try:
                 json = response.json()
                 self._json = json

@@ -27,11 +27,9 @@ class _Context(_MethodContext, _RequestBuilder, _SenderBuilder):
             self.set_method_from_args(params=kwargs, annotations=func.__annotations__)
             mapping = MappingProxyType({obj.alias: obj for obj in args + (self,)})
             if ClientAliases.blocking.name in mapping.keys():
-                return self.get_blocking_response(
-                    mapping[ClientAliases.blocking.name].session, self.get_state(mapping))
+                return self.get_blocking_response(mapping[ClientAliases.blocking.name].session, self.get_state(mapping))
             elif ClientAliases.nonblocking.name in mapping.keys():
-                return self.get_nonblocking_response(
-                    mapping[ClientAliases.nonblocking.name].session, self.get_state(mapping))
+                return self.get_nonblocking_response(mapping[ClientAliases.nonblocking.name].session, self.get_state(mapping))
         return arg_handler
 
 
