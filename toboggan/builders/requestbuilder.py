@@ -21,7 +21,7 @@ class RequestBuilder:
             self.method: Optional[MethodContext] = method
 
         @cached_property
-        def abs_url(self):
+        def abs_url(self) -> Text:
             path = self.method.path_w_params
             if self.blocking:
                 base = self.blocking.base_url
@@ -61,5 +61,5 @@ class RequestBuilder:
                     self.params[key] = val
 
     @classmethod
-    def get_state(cls, mapping):
+    def get_state(cls, mapping) -> RequestCommonContext:
         return cls.Config(cls.State.stage(**mapping))

@@ -3,6 +3,7 @@ from typing import Dict, Optional, Text, Tuple, Union
 
 # Third-party
 from aiohttp import ClientResponse, ClientSession
+from multidict import CIMultiDictProxy
 from requests import Request, Response, Session, exceptions
 
 # Local
@@ -31,17 +32,22 @@ class SenderBuilder:
             return session.send(prepped)
         
         @classmethod
-        async def nonblocking_fetch(cls, session: ClientSession, state) -> Tuple[int, Optional[Text], Optional[Dict]]:
+        async def nonblocking_fetch(
+                cls,
+                session: ClientSession,
+                state
+        ) -> Tuple[int, Optional[CIMultiDictProxy], Optional[Text], Optional[Dict]]:
             async with session.request(**state.request_config) as response:
                 status = response.status
+                headers = response.headers
                 text = await response.text()
                 json = await response.json()
-                return status, text, json
+                return status, headers, text, json
     
     class BlockingResponse(_ResponseContext):
         
         def __init__(self, response: Response):
-            super().__init__(status_code=response.status_code, text=response.text)
+            super().__init__(status_code=response.status_code, headers=response.headers, text=response.text)
             try:
                 json = response.json()
                 self._json = json
@@ -50,7 +56,10 @@ class SenderBuilder:
     
     class NonblockingResponse(_ResponseContext):
         
-        def __init__(self, response: Tuple[ClientResponse.status, ClientResponse.text, ClientResponse.json]):
+        def __init__(
+                self,
+                response: Tuple[ClientResponse.status, ClientResponse.headers, ClientResponse.text, ClientResponse.json]
+        ):
             super().__init__(*response)
     
     @classmethod
