@@ -36,7 +36,3 @@ class MethodContext:
     @property
     def path_w_params(self):
         return self.path.format(**self.path_params)
-
-    @property
-    def mapping(self):
-        return MappingProxyType(self.__dict__)
