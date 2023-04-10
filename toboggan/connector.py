@@ -66,10 +66,10 @@ class _BaseContext(_ClientContext):
         return self._base_headers
 
     @base_headers.setter
-    def base_headers(self, dataclass_) -> None:
+    def base_headers(self, callable_) -> None:
         """Stores headers if a model is decorated w/ decos.Headers.
         """
-        self._base_headers = dataclass_
+        self._base_headers = callable_
 
     @property
     def alias(self) -> Text:

@@ -12,9 +12,7 @@ __all__ = ('Query',)
 class _Context(_QueryParamsContext):
 
     def __init__(self, params: Dict):
-        super().__init__()
-        self.alias = ContextAliases.query.name
-        self.values = params
+        super().__init__(alias=ContextAliases.query.name, values=params)
 
     def __call__(self, func):
         @wraps(func)

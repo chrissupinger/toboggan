@@ -3,7 +3,7 @@ from functools import cached_property
 from typing import Dict, Optional, Text
 
 # Local
-from ..models import DecoCommonContext, MethodContext, RequestCommonContext
+from ..models import DecoCommonContext, MethodContext, RequestCommonContext as _RequestCommonContext
 from ..utils import exceptions
 
 __all__ = ('RequestBuilder',)
@@ -29,23 +29,20 @@ class RequestBuilder:
                 base = self.nonblocking.base_url
             else:
                 raise exceptions.NoBaseUrl()
-            if base.endswith('/'):
-                base = base.rstrip('/')
+            base = base.rstrip('/') if base.endswith('/') else base
             if path:
-                if path.startswith('/'):
-                    path = path.replace('/', '', 1)
-            return '/'.join((base, path,))
+                path = path.replace('/', '', 1) if path.startswith('/') else path
+                return '/'.join((base, path,))
+            return base
 
         @classmethod
         def stage(cls, blocking=None, nonblocking=None, headers=None, query=None, method=None):
             return cls(blocking, nonblocking, headers, query, method)
 
-    class Config(RequestCommonContext):
+    class Config(_RequestCommonContext):
 
         def __init__(self, state):
-            super().__init__()
-            self.method = state.method.verb
-            self.url = state.abs_url
+            super().__init__(method=state.method.verb, url=state.abs_url)
             if state.headers:
                 self.headers = state.headers.values
             if state.method.body:
@@ -61,5 +58,5 @@ class RequestBuilder:
                     self.params[key] = val
 
     @classmethod
-    def get_state(cls, mapping) -> RequestCommonContext:
+    def get_state(cls, mapping) -> _RequestCommonContext:
         return cls.Config(cls.State.stage(**mapping))

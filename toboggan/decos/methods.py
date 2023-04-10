@@ -16,20 +16,21 @@ class _Context(_MethodContext, _RequestBuilder, _SenderBuilder):
     """
 
     def __init__(self, method: Text, path: Text, **kwargs: Dict):
-        super().__init__()
-        self.verb = method
-        self.path = path
+        super().__init__(verb=method, path=path)
 
     def __call__(self, func):
         @wraps(func)
         def arg_handler(*args, **kwargs):
             self.path_params = kwargs
-            self.set_method_from_args(params=kwargs, annotations=func.__annotations__)
+            self.set_method_from_args(annotations=func.__annotations__)
             mapping = MappingProxyType({obj.alias: obj for obj in args + (self,)})
+            state = self.get_state(mapping=mapping)
             if ClientAliases.blocking.name in mapping.keys():
-                return self.get_blocking_response(mapping[ClientAliases.blocking.name].session, self.get_state(mapping))
+                session = mapping[ClientAliases.blocking.name].session
+                return self.get_blocking_response(session=session, state=state)
             elif ClientAliases.nonblocking.name in mapping.keys():
-                return self.get_nonblocking_response(mapping[ClientAliases.nonblocking.name].session, self.get_state(mapping))
+                session = mapping[ClientAliases.nonblocking.name].session
+                return self.get_nonblocking_response(session=session, state=state)
         return arg_handler
 
 
