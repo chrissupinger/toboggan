@@ -13,7 +13,7 @@ __all__ = ('Headers',)
 class _Context(_HeadersContext):
 
     def __init__(self, headers: Dict):
-        super().__init__(alias=ContextAliases.query.name, values=headers)
+        super().__init__(alias=ContextAliases.headers.name, values=headers)
 
     def __call__(self, callable_):
         @wraps(callable_)

@@ -14,7 +14,7 @@ __all__ = ('Connector',)
 
 
 class _ClientContext:
-    __slots__ = ('_client',)
+    __slots__ = ('_client', '_session',)
 
     def __init__(self, client: Union[ClientContext, Session, ClientSession]):
         self._client = client
@@ -22,10 +22,26 @@ class _ClientContext:
         # Default client is Client.block().  This can be changed in user models or during model instantiation.
         if not isinstance(self._client, (ClientContext, Session, ClientSession,)):
             raise exceptions.UnrecognizedClientType(self._client)
+        self._session = self._set_session()
+
+    def _set_session(self):
+        # Set session if using one of toboggan's native clients.
+        if isinstance(self._client, ClientContext):
+            if isinstance(self._client.session, Session):
+                return self._client.session
+            elif self._client.session == ClientSession:
+                return self._client.session(**self._client.settings)
+        # Set session if using requests.Session and aiohttp.ClientSession.
+        elif isinstance(self._client, (Session, ClientSession,)):
+            return self._client
+
+    @property
+    def session(self):
+        return self._session
 
 
 class _BaseContext(_ClientContext):
-    __slots__ = ('_base_url', '_base_headers', 'session',)
+    __slots__ = ('_base_url', '_base_headers',)
 
     def __init__(self, base_url, client):
         super().__init__(client=client)
@@ -34,22 +50,18 @@ class _BaseContext(_ClientContext):
         # Checks for the presence of the base_url parameter.  If not, raises utils.exceptions.NoBaseUrl.
         if not base_url:
             raise exceptions.NoBaseUrl()
-        # Set session if using one of toboggan's native clients.
+        self._set_headers()
+
+    def _set_headers(self):
+        # Set global, base headers for the sessions if using toboggan native clients.
         if isinstance(self._client, ClientContext):
-            # Set global, base headers for the sessions if using toboggan native clients.
             if self.base_headers:
                 self._client.add_headers(fields=self.base_headers.values)
-            if isinstance(self._client.session, Session):
-                self.session = self._client.session
-            elif self._client.session == ClientSession:
-                self.session = self._client.session(**self._client.settings)
-        # Set session if using requests.Session and aiohttp.ClientSession.
+        # If user provided requests.Session or aiohttp.ClientSession, set headers directly to the client session.
         elif isinstance(self._client, (Session, ClientSession,)):
-            # If user provided requests.Session or aiohttp.ClientSession, set headers directly to the client session.
             if self.base_headers:
                 for key, val in self.base_headers.values.items():
                     self._client.headers[key] = val
-            self.session = self._client
 
     @property
     def base_url(self) -> Text:
