@@ -2,11 +2,10 @@
 from types import MappingProxyType
 from typing import Dict, Optional, Text
 
+__all__ = ('BlockingContext', 'NonblockingContext',)
 
-__all__ = ('RequestCommonContext',)
 
-
-class RequestCommonContext:
+class _CommonContext:
 
     def __init__(self, method: Optional[Text], url: Optional[Text]):
         self.method = method
@@ -21,11 +20,11 @@ class RequestCommonContext:
         return MappingProxyType(self.__dict__)
 
 
-class BlockingContext(RequestCommonContext):
+class BlockingContext(_CommonContext):
     def __init__(self, method, url):
         super().__init__(method, url)
 
 
-class NonblockingContext(RequestCommonContext):
+class NonblockingContext(_CommonContext):
     def __init__(self, method, url):
         super().__init__(method, url)

@@ -3,15 +3,20 @@ from functools import wraps
 from types import MappingProxyType
 from typing import Dict, Text
 
+# Third-party
+from aiohttp import ClientSession
+from requests import Session
+
 # Local
-from ..builders import RequestBuilder as _RequestBuilder, SenderBuilder as _SenderBuilder
+from ..builders import (
+    StateBuilder as _StateBuilder,
+    MessageBuilder as _MessageBuilder)
 from ..models import MethodContext as _MethodContext
-from ..utils import ClientAliases
 
 __all__ = ('Connect', 'Delete', 'Get', 'Head', 'Options', 'Patch', 'Post', 'Put', 'Trace',)
 
 
-class _Context(_MethodContext, _RequestBuilder, _SenderBuilder):
+class _Context(_MethodContext, _StateBuilder, _MessageBuilder):
     """Constructor for the base context of an HTTP method.
     """
 
@@ -23,14 +28,13 @@ class _Context(_MethodContext, _RequestBuilder, _SenderBuilder):
         def arg_handler(*args, **kwargs):
             self.path_params = kwargs
             self.set_method_from_args(annotations=func.__annotations__)
-            mapping = MappingProxyType({obj.alias: obj for obj in args + (self,)})
-            state = self.get_state(mapping=mapping)
-            if ClientAliases.blocking.name in mapping.keys():
-                session = mapping[ClientAliases.blocking.name].session
-                return self.get_blocking_response(session=session, state=state)
-            elif ClientAliases.nonblocking.name in mapping.keys():
-                session = mapping[ClientAliases.nonblocking.name].session
-                return self.get_nonblocking_response(session=session, state=state)
+            session, settings, yields = self.get_state(
+                mapping=MappingProxyType({obj.alias: obj for obj in args + (self,)}))
+            if isinstance(session, Session):
+                response = self.send_blocking_request(session, settings, yields)
+            elif isinstance(session, ClientSession):
+                response = self.send_nonblocking_request(session, settings, yields)
+            return response
         return arg_handler
 
 

@@ -1,7 +1,7 @@
 # Standard
 from enum import Enum, auto
 
-__all__ = ('ClientAliases', 'ContextAliases',)
+__all__ = ('ClientAliases', 'ContextAliases', 'YieldsAliases',)
 
 
 class ClientAliases(Enum):
@@ -14,3 +14,9 @@ class ContextAliases(Enum):
     method = auto()
     query = auto()
     returns = auto()
+    yields = auto()
+
+
+class YieldsAliases(Enum):
+    json = auto()
+    text = auto()

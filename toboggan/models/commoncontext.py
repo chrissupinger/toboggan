@@ -1,5 +1,5 @@
 # Standard
-from typing import Dict, Optional, Text
+from typing import Dict, Iterable, Optional, Text, Union
 
 __all__ = ('DecoCommonContext',)
 
@@ -7,7 +7,7 @@ __all__ = ('DecoCommonContext',)
 class DecoCommonContext:
     __slots__ = ('alias', 'values',)
 
-    def __init__(self, alias: Optional[Text], values: Optional[Dict]):
+    def __init__(self, alias: Optional[Text], values: Optional[Union[Dict, Iterable]]):
         self.alias = alias
         self.values = values
 

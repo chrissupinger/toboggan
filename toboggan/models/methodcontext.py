@@ -1,5 +1,4 @@
 # Standard
-from types import MappingProxyType
 from typing import Dict, Optional, Text, Union
 
 # Local
