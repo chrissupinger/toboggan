@@ -5,13 +5,14 @@ from typing import List, Optional, Text, Tuple, Union
 from .commoncontext import DecoCommonContext
 from ..utils import ContextAliases
 
-__all__ = ('YieldsContext',)
+__all__ = ('ResultsInContext',)
 
 
-class YieldsContext(DecoCommonContext):
-    
+class ResultsInContext(DecoCommonContext):
+    __slots__ = ('type_',)
+
     def __init__(self, type_: Optional[Text] = None, values: Optional[Union[List, Tuple]] = None):
-        super().__init__(alias=ContextAliases.yields.name, values=values)
+        super().__init__(alias=ContextAliases.results_in.name, values=values)
         self.type_ = type_
     
     def __repr__(self):

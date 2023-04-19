@@ -11,7 +11,7 @@ from requests import Session
 from ..models import (
     DecoCommonContext,
     MethodContext,
-    YieldsContext,
+    ResultsInContext,
     BlockingContext as _BlockingContext,
     NonblockingContext as _NonblockingContext)
 from ..utils import exceptions
@@ -23,13 +23,13 @@ class StateBuilder:
 
     class State:
 
-        def __init__(self, blocking, nonblocking, headers, query, method, yields):
+        def __init__(self, blocking, nonblocking, headers, query, method, results_in):
             self.blocking: Optional = blocking
             self.nonblocking: Optional = nonblocking
             self.headers: Optional[DecoCommonContext] = headers
             self.query: Optional[DecoCommonContext] = query
             self.method: Optional[MethodContext] = method
-            self.yields: Optional[YieldsContext] = yields
+            self.results_in: Optional[ResultsInContext] = results_in
 
         @cached_property
         def abs_url(self) -> Text:
@@ -47,8 +47,8 @@ class StateBuilder:
             return base
 
         @classmethod
-        def stage(cls, blocking=None, nonblocking=None, headers=None, query=None, method=None, yields=None):
-            return cls(blocking, nonblocking, headers, query, method, yields)
+        def stage(cls, blocking=None, nonblocking=None, headers=None, query=None, method=None, results_in=None):
+            return cls(blocking, nonblocking, headers, query, method, results_in)
 
     class RequestConfig(_BlockingContext, _NonblockingContext):
 
@@ -78,13 +78,11 @@ class StateBuilder:
     def get_state(
             cls,
             mapping: MappingProxyType
-    ) -> Union[Tuple[Session, _BlockingContext, YieldsContext], Tuple[ClientSession, _NonblockingContext, YieldsContext]]:
+    ) -> Union[Tuple[Session, _BlockingContext, ResultsInContext], Tuple[ClientSession, _NonblockingContext, ResultsInContext]]:
         staged = cls.State.stage(**mapping)
         settings = cls.RequestConfig(staged)
         if staged.blocking:
             session = staged.blocking.session
         elif staged.nonblocking:
             session = staged.nonblocking.session
-        else:
-            raise exceptions.UnrecognizedClientType(client=Session)
-        return session, settings, staged.yields
+        return session, settings, staged.results_in

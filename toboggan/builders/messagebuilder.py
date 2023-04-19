@@ -8,8 +8,8 @@ from multidict import CIMultiDictProxy
 from requests import Request, Session, exceptions
 
 # Local
-from ..models import BlockingContext, NonblockingContext, ResponseContext, YieldsContext
-from ..utils import YieldsAliases
+from ..models import BlockingContext, NonblockingContext, ResponseContext, ResultsInContext
+from ..utils import ResultsInAliases
 
 __all__ = ('MessageBuilder',)
 
@@ -49,8 +49,8 @@ class MessageBuilder:
 
     class _Response(ResponseContext):
 
-        def __init__(self, response, yields):
-            super().__init__(*response, yields=yields)
+        def __init__(self, response, results_in):
+            super().__init__(*response, results_in=results_in)
         
         @staticmethod
         def _get_nested(json, keys):
@@ -63,19 +63,21 @@ class MessageBuilder:
     
         @cached_property
         def message(self):
-            if self._yields:
-                if self._yields.type_ == YieldsAliases.json.name:
-                    if self._yields.values:
-                        return self._get_nested(json=self._json, keys=self._yields.values)
+            if self._results_in:
+                if self._results_in.type_ == ResultsInAliases.json.name:
+                    if self._results_in.values:
+                        return self._get_nested(json=self._json, keys=self._results_in.values)
                     return self._json
-                if self._yields.type_ == YieldsAliases.text.name:
+                if self._results_in.type_ == ResultsInAliases.text.name:
                     return self.text
+                if self._results_in.type_ == ResultsInAliases.status_code.name:
+                    return self.status_code
             return self
 
     @classmethod
-    def send_blocking_request(cls, session, settings, yields: YieldsContext):
-        return cls._Response(cls._Request.blocking(session, settings), yields).message
+    def send_blocking_request(cls, session, settings, results_in: ResultsInContext):
+        return cls._Response(cls._Request.blocking(session, settings), results_in).message
 
     @classmethod
-    async def send_nonblocking_request(cls, session, settings, yields: YieldsContext):
-        return cls._Response(await cls._Request.nonblocking(session, settings), yields).message
+    async def send_nonblocking_request(cls, session, settings, results_in: ResultsInContext):
+        return cls._Response(await cls._Request.nonblocking(session, settings), results_in).message

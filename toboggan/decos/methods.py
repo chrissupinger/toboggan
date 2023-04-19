@@ -28,12 +28,12 @@ class _Context(_MethodContext, _StateBuilder, _MessageBuilder):
         def arg_handler(*args, **kwargs):
             self.path_params = kwargs
             self.set_method_from_args(annotations=func.__annotations__)
-            session, settings, yields = self.get_state(
+            session, settings, results_in = self.get_state(
                 mapping=MappingProxyType({obj.alias: obj for obj in args + (self,)}))
             if isinstance(session, Session):
-                response = self.send_blocking_request(session, settings, yields)
+                response = self.send_blocking_request(session, settings, results_in)
             elif isinstance(session, ClientSession):
-                response = self.send_nonblocking_request(session, settings, yields)
+                response = self.send_nonblocking_request(session, settings, results_in)
             return response
         return arg_handler
 
