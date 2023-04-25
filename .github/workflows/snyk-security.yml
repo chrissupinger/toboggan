@@ -26,6 +26,7 @@ jobs:
       - name: Snyk Open Source
         run: |
           snyk auth ${{ secrets.SNYK_TOKEN }}
+          pip install -r requirements.txt
           snyk test
       - name: Snyk Code
         run: |
