@@ -24,6 +24,10 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Open Source
-        run: snyk test
+        run: |
+          snyk auth
+          snyk test
       - name: Snyk Code
-        run: snyk code test
+        run: |
+          snyk auth
+          snyk code test
