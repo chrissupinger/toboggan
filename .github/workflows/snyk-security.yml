@@ -20,8 +20,6 @@ jobs:
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Snyk SBOM
-        run: snyk sbom
       - name: Snyk Open Source
         run: snyk test --all-projects --sarif > snyk-open-source.sarif
       - name: Snyk Code
