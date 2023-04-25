@@ -20,7 +20,10 @@ jobs:
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Snyk Code
-        run: snyk code test --sarif > snyk-code.sarif
-      - name: Snyk Open Source
-        run: snyk monitor --all-projects
+        with:
+          args: --sarif-file-output=snyk.sarif
+          command: monitor
+      - name: Upload results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@main
+        with:
+          sarif_file: snyk.sarif
