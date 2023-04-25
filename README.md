@@ -211,6 +211,12 @@ class Httpbin(Connector):
 
 httpbin = Httpbin(base_url='https://httpbin.org')
 get_status_code = httpbin.get_status_code(code=200)
+
+```
+
+The status code of the invocation as requested by the `ResultsIn` decorator.
+
+``` python
 print(get_status_code)
 # 200
 
@@ -238,6 +244,12 @@ async def get_all_pokemon(range_):
         return responses
 
 results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
+
+```
+
+The results of the nonblocking invocation as requested by the `ResultsIn` decorator.
+
+```
 print(results)
 # ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard',
 # 'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree', 'weedle',
