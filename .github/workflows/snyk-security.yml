@@ -35,4 +35,4 @@ jobs:
           pip install -r requirements.txt
           snyk test
       - name: Snyk Code scan
-        run: snyk code
+        run: snyk code test
