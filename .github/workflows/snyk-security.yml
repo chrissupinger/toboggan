@@ -23,12 +23,10 @@ jobs:
         uses: snyk/actions/setup@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk auth $SNYK_TOKEN
       - name: Snyk Open Source
         run: |
-          snyk auth ${{ secrets.SNYK_TOKEN }}
           pip install -r requirements.txt
           snyk test
       - name: Snyk Code
-        run: |
-          snyk auth ${{ secrets.SNYK_TOKEN }}
-          snyk code test
+        run: snyk code test
