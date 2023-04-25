@@ -25,9 +25,9 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Open Source
         run: |
-          snyk auth
+          snyk auth $SNYK_TOKEN
           snyk test
       - name: Snyk Code
         run: |
-          snyk auth
+          snyk auth $SNYK_TOKEN
           snyk code test
