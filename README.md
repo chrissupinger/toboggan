@@ -182,3 +182,83 @@ print(results)
 # 'mewtwo', 'mew']
 
 ```
+
+## Other decorators
+
+### ResultsIn
+
+The `ResultsIn` decorator allows a user to set an expected return value prior to invocation.  `ResultsIn` can give direct access to `status_code`, `text` and `json`.
+
+``` python
+from toboggan import Client, Connector, Get, Headers, ResultsIn
+
+```
+
+Adding an additional method to the blocking model above and decorating it with `ResultsIn` allows us to directly access the status code emitted by the server.
+
+``` python
+@Headers({'Content-Type': 'application/json'})
+class Httpbin(Connector):
+    """Represents an httpbin API mapping.
+    """
+
+    @ResultsIn.status_code()
+    @Get(path='/status/{code}')
+    def get_status_code(self, code):
+        """Send a GET request to retrieve a status code.
+        """
+
+
+httpbin = Httpbin(base_url='https://httpbin.org')
+get_status_code = httpbin.get_status_code(code=200)
+print(get_status_code)
+# 200
+
+```
+
+Decorating the method of the nonblocking model above allows us to directly access the value associated to a key constant two layers deep.
+
+``` python
+@Headers({'Content-Type': 'application/json'})
+class PokeApi(Connector):
+    """Represents a PokéAPI mapping.
+    """
+
+    @ResultsIn.json(keys=('species', 'name',))
+    @Get(path='/pokemon/{no}')
+    def get_pokemon(self, no):
+        """Retrieve Pokémon metadata.
+        """
+
+
+async def get_all_pokemon(range_):
+    api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
+    async with api.session as _:
+        responses = await asyncio.gather(*[api.get_pokemon(no=no) for no in range_])
+        return responses
+
+results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
+print(results)
+# ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard',
+# 'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree', 'weedle',
+# 'kakuna', 'beedrill', 'pidgey', 'pidgeotto', 'pidgeot', 'rattata', 'raticate',
+# 'spearow', 'fearow', 'ekans', 'arbok', 'pikachu', 'raichu', 'sandshrew', 'sandslash',
+# 'nidoran-f', 'nidorina', 'nidoqueen', 'nidoran-m', 'nidorino', 'nidoking', 'clefairy',
+# 'clefable', 'vulpix', 'ninetales', 'jigglypuff', 'wigglytuff', 'zubat', 'golbat',
+# 'oddish', 'gloom', 'vileplume', 'paras', 'parasect', 'venonat', 'venomoth', 'diglett',
+# 'dugtrio', 'meowth', 'persian', 'psyduck', 'golduck', 'mankey', 'primeape', 'growlithe',
+# 'arcanine', 'poliwag', 'poliwhirl', 'poliwrath', 'abra', 'kadabra', 'alakazam',
+# 'machop', 'machoke', 'machamp', 'bellsprout', 'weepinbell', 'victreebel', 'tentacool',
+# 'tentacruel', 'geodude', 'graveler', 'golem', 'ponyta', 'rapidash', 'slowpoke',
+# 'slowbro', 'magnemite', 'magneton', 'farfetchd', 'doduo', 'dodrio', 'seel', 'dewgong',
+# 'grimer', 'muk', 'shellder', 'cloyster', 'gastly', 'haunter', 'gengar', 'onix',
+# 'drowzee', 'hypno', 'krabby', 'kingler', 'voltorb', 'electrode', 'exeggcute', 'exeggutor',
+# 'cubone', 'marowak', 'hitmonlee', 'hitmonchan', 'lickitung', 'koffing', 'weezing',
+# 'rhyhorn', 'rhydon', 'chansey', 'tangela', 'kangaskhan', 'horsea', 'seadra', 'goldeen',
+# 'seaking', 'staryu', 'starmie', 'mr-mime', 'scyther', 'jynx', 'electabuzz', 'magmar',
+# 'pinsir', 'tauros', 'magikarp', 'gyarados', 'lapras', 'ditto', 'eevee', 'vaporeon',
+# 'jolteon', 'flareon', 'porygon', 'omanyte', 'omastar', 'kabuto', 'kabutops', 'aerodactyl',
+# 'snorlax', 'articuno', 'zapdos', 'moltres', 'dratini', 'dragonair', 'dragonite',
+# 'mewtwo', 'mew']
+
+```

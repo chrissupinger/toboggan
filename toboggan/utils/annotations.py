@@ -6,7 +6,7 @@ __all__ = ('Body', 'QueryParam', 'PathParam',)
 # Annotation used for a request body.
 Body = NewType('RequestBody', Union[Dict, Text])
 # Annotation used for a query parameter.
-QueryParam = NewType('QueryParam', Text)
+QueryParam = NewType('QueryParam', Union[Text, int])
 # Annotation used for a query parameters mapping.
 QueryParamsMapping = NewType('QueryParamsMapping', Dict)
 # Annotation used for a path parameter.
