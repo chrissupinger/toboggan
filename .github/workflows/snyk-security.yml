@@ -20,7 +20,5 @@ jobs:
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Snyk Open Source
-        run: snyk test --sarif > snyk-open-source.sarif
       - name: Snyk Code
         run: snyk code test --sarif > snyk-code.sarif
