@@ -16,9 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
-      - name: Run Snyk to check for weaknesses and vulnerabilities
+      - name: Setup Snyk CLI
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Snyk Open Source
+        run: snyk test
       - name: Snyk Code
-        run: snyk code test --sarif > snyk-code.sarif
+        run: snyk code test
