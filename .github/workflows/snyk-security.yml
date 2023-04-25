@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
+      - uses: actions/setup-python@main
       - name: Setup Snyk CLI
         uses: snyk/actions/setup@master
         env:
