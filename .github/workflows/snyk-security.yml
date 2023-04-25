@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@main
       - name: Setup Snyk CLI
-        uses: snyk/actions/python@master
+        uses: snyk/actions/setup@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Open Source
