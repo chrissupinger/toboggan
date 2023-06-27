@@ -30,7 +30,7 @@ class MethodContext:
                 if val.__qualname__ == Body.__qualname__:
                     self.body = self.path_params.get(key)
                 if val.__qualname__ == QueryParam.__qualname__:
-                    self.query.update(self.path_params)
+                    self.query[key] = self.path_params.get(key)
 
     @property
     def path_w_params(self):

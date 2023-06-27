@@ -249,7 +249,7 @@ results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
 
 The results of the nonblocking invocation as requested by the `ResultsIn` decorator.
 
-```
+``` python
 print(results)
 # ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard',
 # 'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree', 'weedle',
