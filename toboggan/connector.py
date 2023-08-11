@@ -14,7 +14,7 @@ __all__ = ('Connector',)
 
 
 class _ClientContext:
-    __slots__ = ('_client', '_session',)
+    __slots__ = ('_client',)
 
     def __init__(self, client: Union[ClientContext, Session, ClientSession]):
         self._client = client
@@ -22,9 +22,37 @@ class _ClientContext:
         # Default client is Client.block().  This can be changed in user models or during model instantiation.
         if not isinstance(self._client, (ClientContext, Session, ClientSession,)):
             raise exceptions.UnrecognizedClientType(self._client)
+
+
+class _BaseContext(_ClientContext):
+    __slots__ = ('_base_url', '_base_headers', '_session',)
+
+    def __init__(self, base_url, client):
+        super().__init__(client=client)
+        self._base_url = base_url
+        self._base_headers: Optional[DecoCommonContext] = None
+        # Checks for the presence of the base_url parameter.  If not, raises utils.exceptions.NoBaseUrl.
+        if not base_url:
+            raise exceptions.NoBaseUrl()
+        self._set_base_headers()
         self._session = self._set_session()
 
-    def _set_session(self):
+    def _set_base_headers(self) -> None:
+        """Mounts base headers to a session based on decorating a constructor with decos.Headers.
+        """
+        # Set global, base headers for the sessions if using toboggan native clients.
+        if isinstance(self._client, ClientContext):
+            if self.base_headers:
+                self._client.add_base_headers(fields=self.base_headers.values)
+        # If user provided requests.Session or aiohttp.ClientSession, set headers directly to the client session.
+        elif isinstance(self._client, (Session, ClientSession,)):
+            if self.base_headers:
+                for key, val in self.base_headers.values.items():
+                    self._client.headers[key] = val
+
+    def _set_session(self) -> Union[Session, ClientSession]:
+        """Mounts a configured session to constructor.
+        """
         # Set session if using one of toboggan's native clients.
         if isinstance(self._client, ClientContext):
             if isinstance(self._client.session, Session):
@@ -36,39 +64,15 @@ class _ClientContext:
             return self._client
 
     @property
-    def session(self):
+    def session(self) -> Union[Session, ClientSession]:
         return self._session
-
-
-class _BaseContext(_ClientContext):
-    __slots__ = ('_base_url', '_base_headers',)
-
-    def __init__(self, base_url, client):
-        super().__init__(client=client)
-        self._base_url = base_url
-        self._base_headers: Optional[DecoCommonContext] = None
-        # Checks for the presence of the base_url parameter.  If not, raises utils.exceptions.NoBaseUrl.
-        if not base_url:
-            raise exceptions.NoBaseUrl()
-        self._set_headers()
-
-    def _set_headers(self):
-        # Set global, base headers for the sessions if using toboggan native clients.
-        if isinstance(self._client, ClientContext):
-            if self.base_headers:
-                self._client.add_headers(fields=self.base_headers.values)
-        # If user provided requests.Session or aiohttp.ClientSession, set headers directly to the client session.
-        elif isinstance(self._client, (Session, ClientSession,)):
-            if self.base_headers:
-                for key, val in self.base_headers.values.items():
-                    self._client.headers[key] = val
 
     @property
     def base_url(self) -> Text:
         return self._base_url
 
     @base_url.setter
-    def base_url(self, url) -> None:
+    def base_url(self, url: Text) -> None:
         self._base_url = url
 
     @property
