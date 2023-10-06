@@ -17,8 +17,8 @@ class Httpbin(Connector):
     """Represents an httpbin API mapping.
     """
 
-    def __init__(self):
-        super().__init__(base_url='https://httpbin.org', client=Client.block())
+    def __init__(self, base_url='https://httpbin.org', client=Client.block()):
+        super().__init__(base_url=base_url, client=client)
 
     @Get(path='/ip')
     def get_ip(self):
@@ -116,6 +116,9 @@ from toboggan import Client, Connector, Get, Headers
 class PokeApi(Connector):
     """Represents a PokéAPI mapping.
     """
+    
+    def __init__(self, base_url, client):
+        super().__init__(base_url=base_url, client=client)
 
     @Get(path='/pokemon/{no}')
     def get_pokemon(self, no):
@@ -129,9 +132,12 @@ class PokeApi(Connector):
 #### Example A. Using asyncio.run
 
 ``` python
+async def poke_api_nonblock():
+    return PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
+
 async def get_all_pokemon(range_):
-    api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
-    async with api.session as _:
+    api = await poke_api_nonblock()
+    async with api.session:
         responses = await asyncio.gather(*[api.get_pokemon(no=no) for no in range_])
         return [response.json()['species']['name'] for response in responses]
 
@@ -147,7 +153,7 @@ asyncio.set_event_loop(loop)
 api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
 
 async def get_all_pokemon(range_):
-    async with api.session as _:
+    async with api.session:
         responses = await asyncio.gather(*[api.get_pokemon(no=no) for no in range_])
         return [response.json()['species']['name'] for response in responses]
 
@@ -237,9 +243,12 @@ class PokeApi(Connector):
         """
 
 
+async def poke_api_nonblock():
+    return PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
+
 async def get_all_pokemon(range_):
-    api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
-    async with api.session as _:
+    api = await poke_api_nonblock()
+    async with api.session:
         responses = await asyncio.gather(*[api.get_pokemon(no=no) for no in range_])
         return responses
 
