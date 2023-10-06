@@ -235,6 +235,9 @@ Decorating the method of the nonblocking model above allows us to directly acces
 class PokeApi(Connector):
     """Represents a PokéAPI mapping.
     """
+    
+    def __init__(self, base_url, client):
+        super().__init__(base_url=base_url, client=client)
 
     @ResultsIn.json(keys=('species', 'name',))
     @Get(path='/pokemon/{no}')
