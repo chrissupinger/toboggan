@@ -1,3 +1,3 @@
-aiohttp[speedups]
-requests
-typeguard==4.3.0
+aiohttp[speedups]>=3.8.3
+requests>=2.82.2
+typeguard>=2.13.3
