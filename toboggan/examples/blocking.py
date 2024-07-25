@@ -8,7 +8,10 @@ class Httpbin(Connector):
     """A httpbin mapping.
 
     This example and mapping is facilitated with the Docker image.  To run it
-    locally, See usage below.
+    locally, see usage below.
+
+    If wanting to use the hosted httpbin service, set the `base_url` to
+    https://httpbin.org.
 
     ::
 

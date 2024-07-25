@@ -220,12 +220,22 @@ class Configure:
 
 
 class ResponseObject:
-    """Enables object access parity regardless of client type response
-    received.
+    """Enables near parity and object access regardless of client type response
+    received.  Additional callables, from both library response objects,
+    should be considered for relevancy in the future.
 
     ::
 
         response = ResponseObject(**kwargs)
+        response.content
+        response.encoding
+        response.headers
+        response.history
+        response.json()
+        response.ok
+        response.raise_for_status()
+        response.status_code
+        response.text
 
     References:
         - aiohttp: :py:class:`aiohttp.ClientResponse`

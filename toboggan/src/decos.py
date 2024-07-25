@@ -1,7 +1,7 @@
 # Standard
 from functools import wraps
 from inspect import isclass, isfunction, signature
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Coroutine, Dict, List, Optional, Tuple, Union
 
 # Third-party
 from typeguard import typechecked
@@ -30,7 +30,7 @@ __all__ = (
 
 class _CommonContext:
     """The common context shared across every class-level and method-level
-    decorators.
+    decorator.
     """
     __slots__ = ('alias', 'value',)
 
@@ -84,31 +84,59 @@ class _CommonContext:
             """Handler for the non-keyword (*args) and keyword (**kwargs)
             arguments that are passed as method parameters.
             """
-            connector, config_request, config_response = self.__set_args(args)
-            if self.alias is Request.headers:
-                config_request.headers.update(self.value)
-            elif self.alias is Request.params:
-                config_request.params = self.value
-            elif self.alias is Response.returns:
-                config_response.parameters, config_response.type_ = self.value
-            elif self.alias is Request.method:
-                config_request.path, config_request.method = self.value
-                config_request.signature = signature(func)
-                bindings = config_request.signature.bind(
-                    *(connector,), **kwargs).arguments
-                config_request.bindings.update(bindings)
-                if connector.client_alias is Client.blocking:
-                    message = Message.with_requests_client(
-                        config_request, config_response, connector)
-                elif connector.client_alias is Client.nonblocking:
-                    message = Message.with_aiohttp_client(
-                        config_request, config_response, connector)
-                else:
-                    ...
-                return message
+            connector, config_request, config_response = \
+                self.__set_configurables(func, self.__set_args(args), kwargs)
+            if self.alias is Request.method:
+                return self.__get_message(
+                    connector, config_request, config_response)
             return func(
                 *(connector, config_request, config_response,), **kwargs)
         return arg_handler
+
+    def __set_configurables(
+            self,
+            func: Callable,
+            args: Tuple[Connector, Configure.Request, Configure.Response],
+            kwargs: Dict
+    ) -> Tuple[Connector, Configure.Request, Configure.Response]:
+        """Assesses the alias assigned to the inherited common context.
+        Handles the attribute assignment of an alias and value to either the
+        :py:class:`Configure.Request` or :py:class:`Configure.Response`.
+        Returns modified non-keyword arguments.
+        """
+        connector, config_request, config_response = args
+        if self.alias is Request.headers:
+            config_request.headers.update(self.value)
+        elif self.alias is Request.params:
+            config_request.params = self.value
+        elif self.alias is Response.returns:
+            config_response.parameters, config_response.type_ = self.value
+        elif self.alias is Request.method:
+            config_request.path, config_request.method = self.value
+            config_request.signature = signature(func)
+            bindings = config_request.signature.bind(
+                *(connector,), **kwargs).arguments
+            config_request.bindings.update(bindings)
+        return connector, config_request, config_response
+
+    @staticmethod
+    def __get_message(
+            connector: Connector,
+            config_request: Configure.Request,
+            config_response: Configure.Response
+    ) -> Union[ResponseObject, Coroutine]:
+        """Assesses the alias assigned to the client type.  Routes to the
+        correct message handler based on a blocking or non-blocking client in
+        use.
+        """
+        if connector.client_alias is Client.blocking:
+            message = Message.with_requests_client(
+                config_request, config_response, connector)
+            return message
+        if connector.client_alias is Client.nonblocking:
+            message = Message.with_aiohttp_client(
+                config_request, config_response, connector)
+            return message
 
     @staticmethod
     def __set_args(
@@ -131,6 +159,8 @@ class _CommonContext:
 
 
 class _Headers(_CommonContext):
+    """Template for adding headers to a class or method.
+    """
 
     @typechecked
     def __init__(self, mapping: Dict) -> None:
@@ -138,6 +168,8 @@ class _Headers(_CommonContext):
 
 
 class _Method(_CommonContext):
+    """Template for any HTTP method type to add to an instance method.
+    """
 
     @typechecked
     def __init__(self, path: str) -> None:
@@ -146,6 +178,8 @@ class _Method(_CommonContext):
 
 
 class _Params(_CommonContext):
+    """Template for adding query parameters to a class or method.
+    """
 
     @typechecked
     def __init__(self, mapping: Dict, encode: bool = False) -> None:
@@ -153,6 +187,8 @@ class _Params(_CommonContext):
 
 
 class _Returns:
+    """Namespace for generating the return types f.
+    """
     __slots__ = ('json', 'status_code', 'text',)
 
     def __init__(self) -> None:
@@ -161,6 +197,8 @@ class _Returns:
         self.text = self._ParametricSimple(Response.text)
 
     class _Json(_CommonContext):
+        """Template for the JSON return type.  Allows arguments.
+        """
 
         @typechecked
         def __init__(
@@ -168,13 +206,60 @@ class _Returns:
             super().__init__(Response.returns, (key, Response.json,))
 
     class _ParametricSimple(_CommonContext):
+        """Template for adding simple return types that do not require
+        arguments.
+        """
 
         def __init__(self, type_: Response) -> None:
             super().__init__(Response.returns, (None, type_))
 
 
-headers = _Headers
-params = _Params
+headers = type(Request.headers, (_Headers,), {})
+"""Provides access to the headers decorator and can be used to decorate classes
+and instance methods.  A mandatory keyword argument named `mapping` is required
+and is of type `dict`.
+
+If used to decorate a class, will persist global headers for every instance
+method that consumes a :py:class:`Connector`.
+
+If used to decorate an instance method, headers will persist for the specific
+HTTP request.
+
+::
+
+    @headers({'Content-Type': 'application/json'})
+    class Httpbin(Connector):
+        ...
+        
+        @headers({'User-Agent': 'MyTestApp/1.0'})
+        @get(path='/get')
+        def get_(self, **kwargs): pass
+"""
+params = type(Request.params, (_Params,), {})
+"""Provides access to the query parameters decorator and can be used to
+decorate classes and instance methods.  A mandatory keyword argument named
+`mapping` is required and is of type `dict`.
+
+If used to decorate a class, will persist global query parameters for every
+instance method that consumes a :py:class:`Connector`.
+
+If used to decorate an instance method, query parameters will persist for the
+specific HTTP request.
+
+There's an optional keyword argument named `encode`.  This is set to `False` by
+default.  If set to `True`, this will HTML encode query parameters.  Otherwise,
+HTML encoded query parameters can also be explicitly declared. 
+
+::
+
+    @params({'sort': 'asc', 'start_date': '2022-01-01'})
+    class Httpbin(Connector):
+        ...
+        
+        @params({'lang': 'en'})
+        @get(path='/get')
+        def get_(self, **kwargs): pass
+"""
 returns = _Returns()
 """Provides access to decorators that allow a method to default to returning
 JSON, text or status code when invoked.  Declaring a subsequent return type
@@ -182,8 +267,23 @@ will overwrite a previous declared return type.
 
 ::
 
-    @returns.*
-    @get_(path='/get')
+    # If the return type is JSON, values can be passed to the `key` argument. 
+    # This is not required.  `key` can be of type: `list`, `tuple`, `str` or
+    # `None`.
+    
+    @returns.json(key=...)
+    @get(path='/get')
+    def get_(self, **kwargs): pass
+
+    # Status code and text return types take no arguments.
+    
+    @returns.status_code
+    @post(path='/post')
+    def post_(self, **kwargs): pass
+    
+    @returns.text
+    @delete(path='/delete')
+    def delete_(self, **kwargs): pass
 """
 connect = type(Verb.connect, (_Method,), {})
 """The CONNECT method establishes a tunnel to the server identified by the

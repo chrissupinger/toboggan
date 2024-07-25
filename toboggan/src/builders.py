@@ -1,10 +1,9 @@
 # Standard
-from inspect import Signature
+from inspect import getmembers, isawaitable, iscoroutinefunction
 from typing import Dict, List, Optional, Tuple, Union
-from urllib.parse import quote_plus
 
 # Third-party
-from aiohttp import client_exceptions
+from aiohttp import ClientResponse, client_exceptions
 from requests import Request
 
 # Local
@@ -66,6 +65,27 @@ class Message:
                     response.raise_for_status,
                     response.status,
                     await response.text())
+
+        @staticmethod
+        def __get_awaitables(response: ClientResponse) -> List:
+            """If used on a :py:class:`ClientResponse` without the filters,
+            this should return an iterable that contains: `json`, `read`,
+            `start`, `text` and `wait_for_close`.  With filters, it removes
+            `start` and `wait_for_close` from the iterable.
+
+            Inverse::
+
+                return [
+                    name for name, value in getmembers(response)
+                    if not name.startswith('_')
+                    and not iscoroutinefunction(value)
+                    and not isawaitable(value)]
+            """
+            return [
+                name for name, value in getmembers(response)
+                if not name.startswith('_')
+                and name not in ('start', 'wait_for_close',)
+                and iscoroutinefunction(value) or isawaitable(value)]
 
     class Response:
 
