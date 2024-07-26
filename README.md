@@ -4,14 +4,78 @@ Inspired by [prkumar's](https://github.com/prkumar) work on [Uplink](https://git
 
 toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).
 
-## Example usage
+## Table of contents
 
-### Blocking w/ [httpbin](https://github.com/postmanlabs/httpbin)
+- [Connector](#connector)
+- [Decorators](#decorators)
+- [Examples](#examples)
+  - [Blocking](#blocking-w-httpbin)
+  - [Nonblocking](#nonblocking-w-pokéapi)
+
+### Connector
+
+The `Connector` class is the base configuration for creating all API models.  It can grant any instance method access
+to a common client session and a wide array of settings.
+
+Instantiation can be achieved through:
+
+- initialization of the inherited superclass in the class's constructor
+
+``` python
+from toboggan import Connector
+
+
+class Httpbin(Connector):
+
+    def __init__(self):
+        super().__init__(base_url='https://httpbin.org')
+
+
+httpbin = Httpbin()
+```
+
+- Directly calling the class constructor with arguments
+
+``` python
+from toboggan import Connector
+
+
+class Httpbin(Connector):
+    pass
+
+
+httpbin = Httpbin(base_url='https://httpbin.org')
+```
+
+The default client associated to the `Connector` class is the native `RequestsClient`.  `aiohttp.ClientSession` and
+`requests.Session` are compatible as client types.  Changing the client type can be achieved through:
+
+- Passing a different one as a constructor argument
+
+``` python
+from toboggan import AiohttpClient
+
+httpbin = Httpbin(base_url='https://httpbin.org', client=AiohttpClient())
+```
+
+- Setting it via the `session` setter
+
+``` python
+from toboggan import RequestsClient
+
+httpbin.session = RequestsClient()
+```
+
+### Decorators
+...
+
+### Examples
+
+#### Blocking w/ [httpbin](https://github.com/postmanlabs/httpbin)
 
 ``` python
 from json import dumps
-from toboggan import (
-    Body, Connector, RequestsClient, ResponseObject, get, headers, post,)
+from toboggan import Body, Connector, ResponseObject, get, headers, post
 
 
 @headers({'Content-Type': 'application/json'})
@@ -34,9 +98,6 @@ class Httpbin(Connector):
         - `httpbin on GitHub <https://github.com/postmanlabs/httpbin>`_
     """
 
-    def __init__(self):
-        super().__init__(base_url='http://0.0.0.0', client=RequestsClient())
-
     @get(path='/get')
     def get_(self) -> ResponseObject:
         """The request's query parameters.
@@ -49,7 +110,7 @@ class Httpbin(Connector):
 
 
 if __name__ == '__main__':
-    httpbin = Httpbin()
+    httpbin = Httpbin(base_url='http://0.0.0.0')
 
     response = httpbin.get_()
     print(dumps(response.json(), indent=4, default=str))
@@ -67,10 +128,9 @@ if __name__ == '__main__':
     }
     response = httpbin.post_(body=request_body)
     print(dumps(response.json(), indent=4, default=str))
-
 ```
 
-### Nonblocking w/ [PokéAPI](https://pokeapi.co/)
+#### Nonblocking w/ [PokéAPI](https://pokeapi.co/)
 
 ``` python
 import asyncio
@@ -126,5 +186,4 @@ if __name__ == '__main__':
     asyncio.set_event_loop(loop)
     responses = loop.run_until_complete(get_many_pokemon(range_=range(1, 152)))
     print(responses)
-
 ```

@@ -1,6 +1,5 @@
 from json import dumps
-from toboggan import (
-    Body, Connector, RequestsClient, ResponseObject, get, headers, post,)
+from toboggan import Body, Connector, ResponseObject, get, headers, post
 
 
 @headers({'Content-Type': 'application/json'})
@@ -23,9 +22,6 @@ class Httpbin(Connector):
         - `httpbin on GitHub <https://github.com/postmanlabs/httpbin>`_
     """
 
-    def __init__(self):
-        super().__init__(base_url='http://0.0.0.0', client=RequestsClient())
-
     @get(path='/get')
     def get_(self) -> ResponseObject:
         """The request's query parameters.
@@ -38,7 +34,7 @@ class Httpbin(Connector):
 
 
 if __name__ == '__main__':
-    httpbin = Httpbin()
+    httpbin = Httpbin(base_url='http://0.0.0.0')
 
     response = httpbin.get_()
     print(dumps(response.json(), indent=4, default=str))
