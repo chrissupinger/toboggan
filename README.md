@@ -9,6 +9,10 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
 - [Connector](#connector)
 - [Client](#client)
 - [Decorators](#decorators)
+  - [Verbs](#verbs)
+  - [headers](#headers)
+  - [params](#params)
+  - [returns.*]()
 - [Examples](#examples)
   - [Blocking](#blocking-w-httpbin)
   - [Nonblocking](#nonblocking-w-pokéapi)
@@ -20,7 +24,7 @@ to a common client session and a wide array of settings.
 
 Instantiation can be achieved through:
 
-- initialization of the inherited superclass in the class's constructor
+- Initialization of the inherited superclass in the class's constructor
 
 ``` python
 from toboggan import Connector
@@ -70,7 +74,14 @@ httpbin.session = RequestsClient()
 ```
 
 ### Decorators
-...
+
+#### Verbs
+
+#### headers
+
+#### params
+
+#### returns.*
 
 ### Examples
 
