@@ -7,6 +7,7 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
 ## Table of contents
 
 - [Connector](#connector)
+- [Client](#client)
 - [Decorators](#decorators)
 - [Examples](#examples)
   - [Blocking](#blocking-w-httpbin)
@@ -46,6 +47,8 @@ class Httpbin(Connector):
 
 httpbin = Httpbin(base_url='https://httpbin.org')
 ```
+
+### Client
 
 The default client associated to the `Connector` class is the native `RequestsClient`.  `aiohttp.ClientSession` and
 `requests.Session` are compatible as client types.  Changing the client type can be achieved through:
