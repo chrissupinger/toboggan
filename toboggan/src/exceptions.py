@@ -3,7 +3,11 @@ from typing import Iterable
 from urllib.parse import urlparse
 
 __all__ = (
-    'InvalidBaseUrl', 'InvalidScheme', 'InvalidSessionSetting', 'NoVerb',)
+    'InvalidBaseUrl',
+    'InvalidClassDecoChain',
+    'InvalidScheme',
+    'InvalidSessionSetting',
+    'NoVerb',)
 
 
 class InvalidBaseUrl(Exception):
@@ -12,6 +16,15 @@ class InvalidBaseUrl(Exception):
         self.__message: str = \
             'Parameter `base_url` is either missing or is invalid.  ' \
             f'Parsed: {base_url}.'
+        super().__init__(self.__message)
+
+
+class InvalidClassDecoChain(Exception):
+
+    def __init__(self, alias: str, valid_aliases: Iterable):
+        self.__message: str = \
+            f'A `{alias}` decorator is not valid for use with classes.  ' \
+            f'Valid class decorators: {", ".join(valid_aliases)}.'
         super().__init__(self.__message)
 
 

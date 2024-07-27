@@ -12,7 +12,7 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
   - [Verbs](#verbs)
   - [headers](#headers)
   - [params](#params)
-  - [returns.*]()
+  - [returns.*](#returns)
 - [Examples](#examples)
   - [Blocking](#blocking-w-httpbin)
   - [Nonblocking](#nonblocking-w-pokéapi)
@@ -54,10 +54,11 @@ httpbin = Httpbin(base_url='https://httpbin.org')
 
 ### Client
 
-The default client associated to the `Connector` class is the native `RequestsClient`.  `aiohttp.ClientSession` and
-`requests.Session` are compatible as client types.  Changing the client type can be achieved through:
+The default client associated to the `Connector` class is the native `RequestsClient`.  For nonblocking requests, the
+native `AiohttpClient` can be used.  `aiohttp.ClientSession` and `requests.Session` are compatible as client types.
+Changing the client type can be achieved through:
 
-- Passing a different one as a constructor argument
+- Passing `AiohttpClient` as a constructor argument
 
 ``` python
 from toboggan import AiohttpClient
@@ -65,7 +66,7 @@ from toboggan import AiohttpClient
 httpbin = Httpbin(base_url='https://httpbin.org', client=AiohttpClient())
 ```
 
-- Setting it via the `session` setter
+- Setting the client via the `session` setter
 
 ``` python
 from toboggan import RequestsClient
@@ -77,7 +78,49 @@ httpbin.session = RequestsClient()
 
 #### Verbs
 
+The verb decorators are foundational for your instance methods to use the `Connector` and should be applied as the first
+decorator in a chain.  A verb decorator is the minimum requirement for instance methods using the `Connector`.
+
+The following HTTP verbs are available for use:
+- `connect`
+- `delete`
+- `get`
+- `head`
+- `options`
+- `patch`
+- `post`
+- `put`
+- `trace`
+
+``` python
+from toboggan import Connector, get, post
+
+
+class Httpbin(Connector):
+    
+    @get(path='/get')
+    def get_(self):
+        pass
+
+
+httpbin = Httpbin(base_url='https://httpbin.org')
+```
+
 #### headers
+
+The `headers` decorator is versatile and can be employed at both the class-level and its instance methods.  When
+decorating the subclass of the `Connector` class, `headers` will designate global values to be applied to every instance
+method that uses the `Connector`.  When decorating an instance method, those values are exclusive to the method.
+
+``` python
+@headers({'Content-Type': 'application/json'})
+class Httpbin(Connector):
+
+    @headers({'User-Agent': 'toboggan (python-requests/2.32.3)'})
+    @get(path='/get')
+    def get_(self):
+        pass
+```
 
 #### params
 

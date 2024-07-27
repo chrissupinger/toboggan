@@ -67,6 +67,9 @@ class _CommonContext:
         def new_init(*args, **kwargs):
             orig_init(*args, **kwargs)
         cls.__init__ = new_init
+        valid_aliases = (Request.headers, Request.params,)
+        if self.alias not in valid_aliases:
+            raise exceptions.InvalidClassDecoChain(self.alias, valid_aliases)
         if self.alias is Request.headers:
             cls.base_headers = self.value
         elif self.alias is Request.params:

@@ -1,5 +1,5 @@
 # Standard
-from typing import Dict, Optional, Tuple, Type, Union
+from typing import Dict, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 # Third-party
@@ -10,7 +10,7 @@ from typeguard import typechecked
 # Local
 from . import exceptions
 from .aliases import Client, Scheme
-from .client import AiohttpClient, RequestsClient
+from .client import RequestsClient
 
 
 class Connector:
@@ -27,11 +27,14 @@ class Connector:
         self.__base_url = base_url
         self.__client = client
         self.__client.headers.update(self.base_headers)
-        # if not self.base_url.scheme or \
-        #         self.base_url.scheme not in Scheme.__members__:
-        #     raise exceptions.InvalidScheme(self.base_url, Scheme.__members__)
-        # if not self.base_url.netloc:
-        #     raise exceptions.InvalidBaseUrl(self.base_url)
+
+    def __validate_connector(self):
+        if not self.base_url.scheme or \
+                self.base_url.scheme not in Scheme.__members__:
+            raise exceptions.InvalidScheme(
+                self.base_url, Scheme.__members__)
+        if not self.base_url.netloc:
+            raise exceptions.InvalidBaseUrl(self.base_url)
 
     @property
     def client_alias(self) -> Client:
