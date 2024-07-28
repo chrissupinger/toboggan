@@ -72,7 +72,7 @@ class PokeApi(Connector):
 
 
 pokeapi_blocking = PokeApi(base_url='https://pokeapi.co/api/v2', client=RequestClient())
-pokeapi_tnonblocking = pokeapi_blocking(base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
+pokeapi_nonblocking = pokeapi_blocking(base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
 ```
 
 ### Client
