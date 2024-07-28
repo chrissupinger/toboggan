@@ -13,6 +13,11 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
   - [headers](#headers)
   - [params](#params)
   - [returns.*](#returns)
+- [Annotations](#annotations)
+  - [Body](#body)
+  - [Path](#path)
+  - [Query](#query)
+  - [QueryMap](#querymap)
 - [Examples](#examples)
   - [Blocking](#blocking-w-httpbin)
   - [Nonblocking](#nonblocking-w-pokéapi)
@@ -20,9 +25,7 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
 ### Connector
 
 The `Connector` class is the base configuration for creating all API models.  It can grant any instance method access
-to a common client session and a wide array of settings.
-
-Instantiation can be achieved through:
+to a common client session and a wide array of settings.  Instantiation can be achieved in various ways:
 
 - Initialization of the inherited superclass in the class's constructor
 
@@ -50,6 +53,26 @@ class Httpbin(Connector):
 
 
 httpbin = Httpbin(base_url='https://httpbin.org')
+```
+
+The `Connector` class is built for reusability.  Even after initial instantiation, the `Connector` can be
+re-instantiated with new `base_url` and `client` arguments.  A use case for this is reusing a model in which both
+blocking and nonblocking behavior is desired from mutual or exclusive paths.
+
+``` python
+from toboggan import AiohttpClient, Path, RequestsClient, get, headers
+
+
+@headers({'Content-Type': 'application/json'})
+class PokeApi(Connector):
+
+    @get(path='/pokemon/{no}')
+    def pokemon(self, no: Path) -> Dict:
+        pass
+
+
+pokeapi_blocking = PokeApi(base_url='https://pokeapi.co/api/v2', client=RequestClient())
+pokeapi_tnonblocking = pokeapi_blocking(base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
 ```
 
 ### Client
@@ -125,6 +148,24 @@ class Httpbin(Connector):
 #### params
 
 #### returns.*
+
+### Annotations
+
+#### Body
+
+...
+
+#### Path
+
+...
+
+#### Query
+
+...
+
+#### QueryMap
+
+...
 
 ### Examples
 

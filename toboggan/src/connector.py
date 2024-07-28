@@ -28,6 +28,12 @@ class Connector:
         self.__client = client
         self.__client.headers.update(self.base_headers)
 
+    def __call__(
+            self,
+            base_url: Optional[str] = None,
+            client: Union[ClientSession, Session] = RequestsClient()):
+        return self.__init__(base_url, client)
+
     def __validate_connector(self):
         if not self.base_url.scheme or \
                 self.base_url.scheme not in Scheme.__members__:
