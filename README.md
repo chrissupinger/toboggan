@@ -18,7 +18,7 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
   - [Path](#path)
   - [Query](#query)
   - [QueryMap](#querymap)
-- [Examples](#examples)
+- [Examples of usage](#examples-of-usage)
   - [Blocking](#blocking-w-httpbin)
   - [Nonblocking](#nonblocking-w-pokéapi)
 
@@ -71,8 +71,8 @@ class PokeApi(Connector):
         pass
 
 
-pokeapi_blocking = PokeApi(base_url='https://pokeapi.co/api/v2', client=RequestClient())
-pokeapi_nonblocking = pokeapi_blocking(base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
+api = PokeApi(base_url='https://pokeapi.co/api/v2', client=RequestClient())
+nonblocking = api(base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
 ```
 
 ### Client
@@ -147,7 +147,28 @@ class Httpbin(Connector):
 
 #### params
 
-#### returns.*
+Just like the `headers` decorator, the `params` decorator is versatile.  The `params` decorator requires a mapping and
+has an optional argument of `encode`.  By default, this is set to `False`.  If set to `True`, the parameter mapping
+values will be encoded.
+
+``` python
+@params({'limit': 50})
+@headers({'Content-Type': 'application/json'})
+class Httpbin(Connector):
+
+    @params({'email': 'johndoe@example.com'}, encode=True)
+    @headers({'User-Agent': 'toboggan (python-requests/2.32.3)'})
+    @get(path='/get')
+    def get_(self):
+        pass
+```
+
+#### returns
+
+The following return types are available for use:
+- `json`
+- `status_code`
+- `text`
 
 ### Annotations
 
@@ -167,7 +188,7 @@ class Httpbin(Connector):
 
 ...
 
-### Examples
+### Examples of usage
 
 #### Blocking w/ [httpbin](https://github.com/postmanlabs/httpbin)
 
