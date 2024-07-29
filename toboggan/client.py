@@ -1,5 +1,5 @@
 # Standard
-from typing import Callable, Dict, List, Union
+from typing import Callable, List, Union
 
 # Third-party
 from aiohttp import ClientSession
@@ -7,7 +7,6 @@ from requests import Session
 
 # Local
 from . import exceptions
-from .aliases import Request
 
 __all__ = ('AiohttpClient', 'RequestsClient',)
 

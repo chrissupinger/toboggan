@@ -1,7 +1,7 @@
-from .src.annotations import Body, Path, Query, QueryMap
-from .src.client import AiohttpClient, RequestsClient
-from .src.connector import Connector
-from .src.decos import (
+from .annotations import Body, Path, Query, QueryMap
+from .client import AiohttpClient, RequestsClient
+from .connector import Connector
+from .decos import (
     connect,
     delete,
     get,
@@ -13,6 +13,5 @@ from .src.decos import (
     post,
     put,
     returns,
-    trace,
-)
-from .src.models import ResponseObject
+    trace,)
+from .models import ResponseObject

@@ -14,11 +14,7 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
   - [params](#params)
   - [returns.*](#returns)
 - [Annotations](#annotations)
-  - [Body](#body)
-  - [Path](#path)
-  - [Query](#query)
-  - [QueryMap](#querymap)
-- [Examples of usage](#examples-of-usage)
+- [Usage](#usage)
   - [Blocking](#blocking-w-httpbin)
   - [Nonblocking](#nonblocking-w-pokéapi)
 
@@ -60,26 +56,21 @@ re-instantiated with new `base_url` and `client` arguments.  A use case for this
 blocking and nonblocking behavior is desired from mutual or exclusive paths.
 
 ``` python
-from toboggan import AiohttpClient, Path, RequestsClient, get, headers
+from toboggan import AiohttpClient, Connector, RequestsClient
 
 
-@headers({'Content-Type': 'application/json'})
-class PokeApi(Connector):
-
-    @get(path='/pokemon/{no}')
-    def pokemon(self, no: Path) -> Dict:
-        pass
+class Httpbin(Connector):
+    pass
 
 
-api = PokeApi(base_url='https://pokeapi.co/api/v2', client=RequestClient())
-nonblocking = api(base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
+api = Httpbin(base_url='https://httpbin.org', client=RequestClient())
+nonblocking = api(base_url='https://httpbin.org', client=AiohttpClient())
 ```
 
 ### Client
 
 The default client associated to the `Connector` class is the native `RequestsClient`.  For nonblocking requests, the
-native `AiohttpClient` can be used.  `aiohttp.ClientSession` and `requests.Session` are compatible as client types.
-Changing the client type can be achieved through:
+native `AiohttpClient` can be used.  Changing the client type can be achieved through:
 
 - Passing `AiohttpClient` as a constructor argument
 
@@ -97,14 +88,26 @@ from toboggan import RequestsClient
 httpbin.session = RequestsClient()
 ```
 
+Native client types are derivatives of `aiohttp.ClientSession` and `requests.Session`.  This means these are also
+compatible client types.
+
+``` python
+from aiohttp import ClientSession
+from requests import Session
+
+httpbin = Httpbin(base_url='https://httpbin.org', client=ClientSession())
+httpbin.session = Session()
+```
+
 ### Decorators
+
+Decorators are used to statically describe your API models.
 
 #### Verbs
 
 The verb decorators are foundational for your instance methods to use the `Connector` and should be applied as the first
-decorator in a chain.  A verb decorator is the minimum requirement for instance methods using the `Connector`.
-
-The following HTTP verbs are available for use:
+decorator in a chain.  A verb decorator is the minimum requirement for instance methods using the `Connector`.  The
+following HTTP verbs are available for use:
 - `connect`
 - `delete`
 - `get`
@@ -124,9 +127,6 @@ class Httpbin(Connector):
     @get(path='/get')
     def get_(self):
         pass
-
-
-httpbin = Httpbin(base_url='https://httpbin.org')
 ```
 
 #### headers
@@ -136,6 +136,9 @@ decorating the subclass of the `Connector` class, `headers` will designate globa
 method that uses the `Connector`.  When decorating an instance method, those values are exclusive to the method.
 
 ``` python
+from toboggan import get, headers
+
+
 @headers({'Content-Type': 'application/json'})
 class Httpbin(Connector):
 
@@ -152,43 +155,86 @@ has an optional argument of `encode`.  By default, this is set to `False`.  If s
 values will be encoded.
 
 ``` python
+from toboggan import get, params
+
+
 @params({'limit': 50})
-@headers({'Content-Type': 'application/json'})
 class Httpbin(Connector):
 
     @params({'email': 'johndoe@example.com'}, encode=True)
-    @headers({'User-Agent': 'toboggan (python-requests/2.32.3)'})
     @get(path='/get')
     def get_(self):
         pass
 ```
 
-#### returns
+#### returns.*
 
-The following return types are available for use:
+The `returns` object grants access to return types that can be used to preemptively declare an expected return type.
+When the decorated instance method is invoked, the designated return type will be loaded.  If no return type is 
+designated, a client agnostic `ResponseObject` is returned.  The following return types are available for use:
 - `json`
 - `status_code`
 - `text`
 
+``` python
+from toboggan import Connector, get, returns
+
+
+class Httpbin(Connector):
+
+    @returns.json(key='json')
+    @get(path='/get')
+    def get_json(self):
+        pass
+    
+    @returns.status_code
+    @get(path='/get')
+    def get_status_code(self):
+        pass
+    
+    @returns.text
+    @get(path='/get')
+    def get_text(self):
+        pass
+```
+
+The `json` return type is able to take a `key` argument.  This argument allows the method to return a nested key-value
+pair.  If `key` is not set, the entire JSON object is returned from the response.  Both `status_code` and `text` do not
+take arguments.
+
 ### Annotations
 
-#### Body
+Annotations are used to designate dynamic values that your models will consume.  These are employed as type hints for
+instance method arguments.  The following annotations are available for use:
+- `Body`
+- `Path`
+- `Query`
+- `QueryMap`
 
-...
+``` python
+from toboggan import Body, Connector, Path, Query, QueryMap, get, post
 
-#### Path
 
-...
+class Httpbin(Connector):
+    
+    @post(path='/post')
+    def post_w_body(self, body: Body):
+        pass
+    
+    @get(path='/anything/{path_param}')
+    def get_w_path_param(self, path_param: Path):
+        pass
+    
+    @get(path='/get')
+    def get_w_query_params(self, limit: Query, **identifiers: QueryMap):
+        pass
+```
 
-#### Query
+The `Body` type annotates the body of the request.  The `Path` type annotates a request path parameter.  The `Query`
+type annotates a request query parameter.  The `QueryMap` annotates a mapping of request query parameters.  A single
+method can only have one `Body` and `QueryMap` annotation and an unlimited number of `Path` and `Query` annotations.
 
-...
-
-#### QueryMap
-
-...
-
-### Examples of usage
+### Usage
 
 #### Blocking w/ [httpbin](https://github.com/postmanlabs/httpbin)
 
