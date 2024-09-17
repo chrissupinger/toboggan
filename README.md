@@ -4,285 +4,351 @@ Inspired by [prkumar's](https://github.com/prkumar) work on [Uplink](https://git
 
 toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).
 
-## Blocking usage w/ [httpbin](https://github.com/postmanlabs/httpbin)
+## Table of contents
 
-### Model
+- [Connector](#connector)
+- [Client](#client)
+- [Decorators](#decorators)
+  - [Verbs](#verbs)
+  - [headers](#headers)
+  - [params](#params)
+  - [returns.*](#returns)
+- [Annotations](#annotations)
+- [Usage](#usage)
+  - [Blocking](#blocking-w-httpbin)
+  - [Nonblocking](#nonblocking-w-pokéapi)
+
+### Connector
+
+The `Connector` class is the base configuration for creating all API models.  It can grant any instance method access
+to a common client session and a wide array of settings.  Instantiation can be achieved in various ways:
+
+- Initialization of the inherited superclass in the class's constructor
 
 ``` python
-from toboggan import Body, Client, Connector, Get, Headers, Post, QueryParam
+from toboggan import Connector
 
 
-@Headers({'Content-Type': 'application/json'})
 class Httpbin(Connector):
-    """Represents an httpbin API mapping.
-    """
 
-    def __init__(self, base_url='https://httpbin.org', client=Client.block()):
-        super().__init__(base_url=base_url, client=client)
+    def __init__(self):
+        super().__init__(base_url='https://httpbin.org')
 
-    @Get(path='/ip')
-    def get_ip(self):
-        """Send a GET request to retrieve your remote IP address.
-        """
 
-    @Get(path='/get')
-    def get_w_query_params(self, hello: QueryParam):
-        """Send a GET request w/ query parameters.
-        """
-
-    @Post(path='/post')
-    def post_w_body(self, body: Body):
-        """Send a POST request w/ body.
-        """
-
-```
-
-### Instantiation
-
-``` python
 httpbin = Httpbin()
-
 ```
 
-### Invocations
+- Directly calling the class constructor with arguments
 
 ``` python
-get_ip = httpbin.get_ip()
-get_w_query_params = httpbin.get_w_query_params(hello='world')
-post_w_body = httpbin.post_w_body(body={'hello': 'world'})
-
-```
-
-### Responses
-
-``` python
-print(get_ip.status_code)
-# 200
-
-print(get_ip.json())
-# {
-#     'origin': '<YOUR_IP_ADDRESS>'
-# }
-
-print(get_w_query_params.json())
-# {
-#     'args': {
-#         'hello': 'world'
-#     },
-#     'headers': {
-#         'Accept': '*/*',
-#         'Accept-Encoding': 'gzip, deflate, br',
-#         'Content-Type': 'application/json',
-#         'Host': 'httpbin.org',
-#         'User-Agent': 'python-requests/2.28.2'
-#     },
-#     'origin': '<YOUR_IP_ADDRESS>',
-#     'url': 'https://httpbin.org/get?hello=world'
-# }
-
-print(post_w_body.json())
-# {
-#     'args': {},
-#     'data': '{"hello": "world"}',
-#     'files': {},
-#     'form': {},
-#     'headers': {
-#         'Accept': '*/*',
-#         'Accept-Encoding': 'gzip, deflate, br',
-#         'Content-Length': '18',
-#         'Content-Type': 'application/json',
-#         'Host': 'httpbin.org',
-#         'User-Agent': 'python-requests/2.28.2'
-#     },
-#     'json': {
-#         'hello': 'world'
-#     },
-#     'origin': '<YOUR_IP_ADDRESS>',
-#     'url': 'https://httpbin.org/post'
-# }
-
-```
-
-## Nonblocking usage w/ [PokéAPI](https://pokeapi.co/)
-
-### Model
-
-``` python
-import asyncio
-from toboggan import Client, Connector, Get, Headers
+from toboggan import Connector
 
 
-@Headers({'Content-Type': 'application/json'})
-class PokeApi(Connector):
-    """Represents a PokéAPI mapping.
-    """
-    
-    def __init__(self, base_url, client):
-        super().__init__(base_url=base_url, client=client)
-
-    @Get(path='/pokemon/{no}')
-    def get_pokemon(self, no):
-        """Retrieve Pokémon metadata.
-        """
-
-```
-
-### Handler
-
-#### Example A. Using asyncio.run
-
-``` python
-async def poke_api_nonblock():
-    return PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
-
-async def get_all_pokemon(range_):
-    api = await poke_api_nonblock()
-    async with api.session:
-        responses = await asyncio.gather(*[api.get_pokemon(no=no) for no in range_])
-        return [response.json()['species']['name'] for response in responses]
-
-results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
-
-```
-
-#### Example B. Using an event loop
-
-``` python
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-api = PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
-
-async def get_all_pokemon(range_):
-    async with api.session:
-        responses = await asyncio.gather(*[api.get_pokemon(no=no) for no in range_])
-        return [response.json()['species']['name'] for response in responses]
-
-results = loop.run_until_complete(get_all_pokemon(range_=range(1, 152)))
-
-```
-
-### Responses
-
-``` python
-print(results)
-# ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard',
-# 'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree', 'weedle',
-# 'kakuna', 'beedrill', 'pidgey', 'pidgeotto', 'pidgeot', 'rattata', 'raticate',
-# 'spearow', 'fearow', 'ekans', 'arbok', 'pikachu', 'raichu', 'sandshrew', 'sandslash',
-# 'nidoran-f', 'nidorina', 'nidoqueen', 'nidoran-m', 'nidorino', 'nidoking', 'clefairy',
-# 'clefable', 'vulpix', 'ninetales', 'jigglypuff', 'wigglytuff', 'zubat', 'golbat',
-# 'oddish', 'gloom', 'vileplume', 'paras', 'parasect', 'venonat', 'venomoth', 'diglett',
-# 'dugtrio', 'meowth', 'persian', 'psyduck', 'golduck', 'mankey', 'primeape', 'growlithe',
-# 'arcanine', 'poliwag', 'poliwhirl', 'poliwrath', 'abra', 'kadabra', 'alakazam',
-# 'machop', 'machoke', 'machamp', 'bellsprout', 'weepinbell', 'victreebel', 'tentacool',
-# 'tentacruel', 'geodude', 'graveler', 'golem', 'ponyta', 'rapidash', 'slowpoke',
-# 'slowbro', 'magnemite', 'magneton', 'farfetchd', 'doduo', 'dodrio', 'seel', 'dewgong',
-# 'grimer', 'muk', 'shellder', 'cloyster', 'gastly', 'haunter', 'gengar', 'onix',
-# 'drowzee', 'hypno', 'krabby', 'kingler', 'voltorb', 'electrode', 'exeggcute', 'exeggutor',
-# 'cubone', 'marowak', 'hitmonlee', 'hitmonchan', 'lickitung', 'koffing', 'weezing',
-# 'rhyhorn', 'rhydon', 'chansey', 'tangela', 'kangaskhan', 'horsea', 'seadra', 'goldeen',
-# 'seaking', 'staryu', 'starmie', 'mr-mime', 'scyther', 'jynx', 'electabuzz', 'magmar',
-# 'pinsir', 'tauros', 'magikarp', 'gyarados', 'lapras', 'ditto', 'eevee', 'vaporeon',
-# 'jolteon', 'flareon', 'porygon', 'omanyte', 'omastar', 'kabuto', 'kabutops', 'aerodactyl',
-# 'snorlax', 'articuno', 'zapdos', 'moltres', 'dratini', 'dragonair', 'dragonite',
-# 'mewtwo', 'mew']
-
-```
-
-## Other decorators
-
-### ResultsIn
-
-The `ResultsIn` decorator allows a user to set an expected return value prior to invocation.  `ResultsIn` can give direct access to `status_code`, `text` and `json`.
-
-``` python
-from toboggan import Client, Connector, Get, Headers, ResultsIn
-
-```
-
-Adding an additional method to the blocking model above and decorating it with `ResultsIn` allows us to directly access the status code emitted by the server.
-
-``` python
-@Headers({'Content-Type': 'application/json'})
 class Httpbin(Connector):
-    """Represents an httpbin API mapping.
-    """
-
-    @ResultsIn.status_code()
-    @Get(path='/status/{code}')
-    def get_status_code(self, code):
-        """Send a GET request to retrieve a status code.
-        """
+    pass
 
 
 httpbin = Httpbin(base_url='https://httpbin.org')
-get_status_code = httpbin.get_status_code(code=200)
-
 ```
 
-The status code of the invocation as requested by the `ResultsIn` decorator.
+The `Connector` class is built for reusability.  Even after initial instantiation, the `Connector` can be
+re-instantiated with new `base_url` and `client` arguments.  A use case for this is reusing a model in which both
+blocking and nonblocking behavior is desired from mutual or exclusive paths.
 
 ``` python
-print(get_status_code)
-# 200
+from toboggan import AiohttpClient, Connector, RequestsClient
 
+
+class Httpbin(Connector):
+    pass
+
+
+api = Httpbin(base_url='https://httpbin.org', client=RequestClient())
+nonblocking = api(base_url='https://httpbin.org', client=AiohttpClient())
 ```
 
-Decorating the method of the nonblocking model above allows us to directly access the value associated to a key constant two layers deep.
+### Client
+
+The default client associated to the `Connector` class is the native `RequestsClient`.  For nonblocking requests, the
+native `AiohttpClient` can be used.  Changing the client type can be achieved through:
+
+- Passing `AiohttpClient` as a constructor argument
 
 ``` python
-@Headers({'Content-Type': 'application/json'})
-class PokeApi(Connector):
-    """Represents a PokéAPI mapping.
-    """
+from toboggan import AiohttpClient
+
+httpbin = Httpbin(base_url='https://httpbin.org', client=AiohttpClient())
+```
+
+- Setting the client via the `session` setter
+
+``` python
+from toboggan import RequestsClient
+
+httpbin.session = RequestsClient()
+```
+
+Native client types are derivatives of `aiohttp.ClientSession` and `requests.Session`.  This means these are also
+compatible client types.
+
+``` python
+from aiohttp import ClientSession
+from requests import Session
+
+httpbin = Httpbin(base_url='https://httpbin.org', client=ClientSession())
+httpbin.session = Session()
+```
+
+### Decorators
+
+Decorators are used to statically describe your API models.
+
+#### Verbs
+
+The verb decorators are foundational for your instance methods to use the `Connector` and should be applied as the first
+decorator in a chain.  A verb decorator is the minimum requirement for instance methods using the `Connector`.  The
+following HTTP verbs are available for use:
+- `connect`
+- `delete`
+- `get`
+- `head`
+- `options`
+- `patch`
+- `post`
+- `put`
+- `trace`
+
+``` python
+from toboggan import Connector, get, post
+
+
+class Httpbin(Connector):
     
-    def __init__(self, base_url, client):
-        super().__init__(base_url=base_url, client=client)
+    @get(path='/get')
+    def get_(self):
+        pass
+```
 
-    @ResultsIn.json(keys=('species', 'name',))
-    @Get(path='/pokemon/{no}')
-    def get_pokemon(self, no):
-        """Retrieve Pokémon metadata.
+#### headers
+
+The `headers` decorator is versatile and can be employed at both the class-level and its instance methods.  When
+decorating the subclass of the `Connector` class, `headers` will designate global values to be applied to every instance
+method that uses the `Connector`.  When decorating an instance method, those values are exclusive to the method.
+
+``` python
+from toboggan import get, headers
+
+
+@headers({'Content-Type': 'application/json'})
+class Httpbin(Connector):
+
+    @headers({'User-Agent': 'toboggan (python-requests/2.32.3)'})
+    @get(path='/get')
+    def get_(self):
+        pass
+```
+
+#### params
+
+Just like the `headers` decorator, the `params` decorator is versatile.  The `params` decorator requires a mapping and
+has an optional argument of `encode`.  By default, this is set to `False`.  If set to `True`, the parameter mapping
+values will be encoded.
+
+``` python
+from toboggan import get, params
+
+
+@params({'limit': 50})
+class Httpbin(Connector):
+
+    @params({'email': 'johndoe@example.com'}, encode=True)
+    @get(path='/get')
+    def get_(self):
+        pass
+```
+
+#### returns.*
+
+The `returns` object grants access to return types that can be used to preemptively declare an expected return type.
+When the decorated instance method is invoked, the designated return type will be loaded.  If no return type is 
+designated, a client agnostic `ResponseObject` is returned.  The following return types are available for use:
+- `json`
+- `status_code`
+- `text`
+
+``` python
+from toboggan import Connector, get, returns
+
+
+class Httpbin(Connector):
+
+    @returns.json(key='json')
+    @get(path='/get')
+    def get_json(self):
+        pass
+    
+    @returns.status_code
+    @get(path='/get')
+    def get_status_code(self):
+        pass
+    
+    @returns.text
+    @get(path='/get')
+    def get_text(self):
+        pass
+```
+
+The `json` return type is able to take a `key` argument.  This argument allows the method to return a nested key-value
+pair.  If `key` is not set, the entire JSON object is returned from the response.  Both `status_code` and `text` do not
+take arguments.
+
+### Annotations
+
+Annotations are used to designate dynamic values that your models will consume.  These are employed as type hints for
+instance method arguments.  The following annotations are available for use:
+- `Body`
+- `Path`
+- `Query`
+- `QueryMap`
+
+``` python
+from toboggan import Body, Connector, Path, Query, QueryMap, get, post
+
+
+class Httpbin(Connector):
+    
+    @post(path='/post')
+    def post_w_body(self, body: Body):
+        pass
+    
+    @get(path='/anything/{path_param}')
+    def get_w_path_param(self, path_param: Path):
+        pass
+    
+    @get(path='/get')
+    def get_w_query_params(self, limit: Query, **identifiers: QueryMap):
+        pass
+```
+
+The `Body` type annotates the body of the request.  The `Path` type annotates a request path parameter.  The `Query`
+type annotates a request query parameter.  The `QueryMap` annotates a mapping of request query parameters.  A single
+method can only have one `Body` and `QueryMap` annotation and an unlimited number of `Path` and `Query` annotations.
+
+### Usage
+
+#### Blocking w/ [httpbin](https://github.com/postmanlabs/httpbin)
+
+``` python
+from json import dumps
+from toboggan import Body, Connector, ResponseObject, get, headers, post
+
+
+@headers({'Content-Type': 'application/json'})
+class Httpbin(Connector):
+    """A httpbin mapping.
+
+    This example and mapping is facilitated with the Docker image.  To run it
+    locally, see usage below.
+
+    If wanting to use the hosted httpbin service, set the `base_url` to
+    https://httpbin.org.
+
+    ::
+
+        docker pull kennethreitz/httpbin
+        docker run -p 80:80 kennethreitz/httpbin
+
+    References:
+        - `httpbin hosted <https://httpbin.org/>`_
+        - `httpbin on GitHub <https://github.com/postmanlabs/httpbin>`_
+    """
+
+    @get(path='/get')
+    def get_(self) -> ResponseObject:
+        """The request's query parameters.
+        """
+
+    @post(path='/post')
+    def post_(self, body: Body) -> ResponseObject:
+        """The request's POST parameters.
         """
 
 
-async def poke_api_nonblock():
-    return PokeApi(base_url='https://pokeapi.co/api/v2', client=Client.nonblock())
+if __name__ == '__main__':
+    httpbin = Httpbin(base_url='http://0.0.0.0')
 
-async def get_all_pokemon(range_):
-    api = await poke_api_nonblock()
-    async with api.session:
-        responses = await asyncio.gather(*[api.get_pokemon(no=no) for no in range_])
-        return responses
+    response = httpbin.get_()
+    print(dumps(response.json(), indent=4, default=str))
 
-results = asyncio.run(get_all_pokemon(range_=range(1, 152)))
-
+    request_body = {
+        "user_id": 12345,
+        "name": "John Doe",
+        "email": "johndoe@example.com",
+        "message": "Hello, world!",
+        "tags": ["general", "greeting"],
+        "data": {
+            "age": 30,
+            "city": "New York"
+        }
+    }
+    response = httpbin.post_(body=request_body)
+    print(dumps(response.json(), indent=4, default=str))
 ```
 
-The results of the nonblocking invocation as requested by the `ResultsIn` decorator.
+#### Nonblocking w/ [PokéAPI](https://pokeapi.co/)
 
 ``` python
-print(results)
-# ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard',
-# 'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree', 'weedle',
-# 'kakuna', 'beedrill', 'pidgey', 'pidgeotto', 'pidgeot', 'rattata', 'raticate',
-# 'spearow', 'fearow', 'ekans', 'arbok', 'pikachu', 'raichu', 'sandshrew', 'sandslash',
-# 'nidoran-f', 'nidorina', 'nidoqueen', 'nidoran-m', 'nidorino', 'nidoking', 'clefairy',
-# 'clefable', 'vulpix', 'ninetales', 'jigglypuff', 'wigglytuff', 'zubat', 'golbat',
-# 'oddish', 'gloom', 'vileplume', 'paras', 'parasect', 'venonat', 'venomoth', 'diglett',
-# 'dugtrio', 'meowth', 'persian', 'psyduck', 'golduck', 'mankey', 'primeape', 'growlithe',
-# 'arcanine', 'poliwag', 'poliwhirl', 'poliwrath', 'abra', 'kadabra', 'alakazam',
-# 'machop', 'machoke', 'machamp', 'bellsprout', 'weepinbell', 'victreebel', 'tentacool',
-# 'tentacruel', 'geodude', 'graveler', 'golem', 'ponyta', 'rapidash', 'slowpoke',
-# 'slowbro', 'magnemite', 'magneton', 'farfetchd', 'doduo', 'dodrio', 'seel', 'dewgong',
-# 'grimer', 'muk', 'shellder', 'cloyster', 'gastly', 'haunter', 'gengar', 'onix',
-# 'drowzee', 'hypno', 'krabby', 'kingler', 'voltorb', 'electrode', 'exeggcute', 'exeggutor',
-# 'cubone', 'marowak', 'hitmonlee', 'hitmonchan', 'lickitung', 'koffing', 'weezing',
-# 'rhyhorn', 'rhydon', 'chansey', 'tangela', 'kangaskhan', 'horsea', 'seadra', 'goldeen',
-# 'seaking', 'staryu', 'starmie', 'mr-mime', 'scyther', 'jynx', 'electabuzz', 'magmar',
-# 'pinsir', 'tauros', 'magikarp', 'gyarados', 'lapras', 'ditto', 'eevee', 'vaporeon',
-# 'jolteon', 'flareon', 'porygon', 'omanyte', 'omastar', 'kabuto', 'kabutops', 'aerodactyl',
-# 'snorlax', 'articuno', 'zapdos', 'moltres', 'dratini', 'dragonair', 'dragonite',
-# 'mewtwo', 'mew']
+import asyncio
+from typing import Dict
+from toboggan import AiohttpClient, Connector, Path, get, headers, returns
 
+
+@headers({'Content-Type': 'application/json'})
+class PokeApi(Connector):
+    """A PokéAPI mapping.
+
+    References:
+        - `PokéAPI <https://pokeapi.co>`_
+    """
+
+    def __init__(self):
+        super().__init__(
+            base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
+
+    @returns.json(key=('species', 'name',))
+    @get(path='/pokemon/{no}')
+    def pokemon(self, no: Path) -> Dict:
+        """Retrieve Pokémon metadata.  Traverse the nested dictionary returned
+        and get the `name` value.
+
+        References:
+            - `Pokémon (endpoint) <https://pokeapi.co/docs/v2#pokemon>`_
+        """
+
+
+if __name__ == '__main__':
+    # Utilizing `asyncio.run` for Python 3.7 and above.
+    async def get_pokemon(no):
+        api = PokeApi()
+        async with api.session:
+            return await api.pokemon(no=no)
+
+    response = asyncio.run(get_pokemon(no=1))
+    print(response)
+
+    async def get_many_pokemon(range_):
+        api = PokeApi()
+        async with api.session:
+            tasks = await asyncio.gather(
+                *[api.pokemon(no=no) for no in range_])
+            return tasks
+
+    responses = asyncio.run(get_many_pokemon(range_=range(1, 152)))
+    print(responses)
+
+    # For < 3.7, use an event loop.
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    responses = loop.run_until_complete(get_many_pokemon(range_=range(1, 152)))
+    print(responses)
 ```

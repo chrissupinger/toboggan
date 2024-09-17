@@ -1,106 +1,83 @@
 # Standard
-from typing import Optional, Text, Union
+from typing import Dict, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 # Third-party
 from aiohttp import ClientSession
 from requests import Session
+from typeguard import typechecked
 
 # Local
-from .client import Client
-from .models import DecoCommonContext, ClientContext
-from .utils import ClientAliases, exceptions
-
-__all__ = ('Connector',)
+from . import exceptions
+from .aliases import Client, Scheme
+from .client import RequestsClient
 
 
-class _ClientContext:
-    __slots__ = ('_client',)
+class Connector:
+    __slots__ = ('__base_headers', '__base_params', '__base_url', '__client',)
 
-    def __init__(self, client: Union[ClientContext, Session, ClientSession]):
-        self._client = client
-        # Checks for a valid client type.  If not, raises utils.exceptions.UnrecognizedClientType.
-        # Default client is Client.block().  This can be changed in user models or during model instantiation.
-        if not isinstance(self._client, (ClientContext, Session, ClientSession,)):
-            raise exceptions.UnrecognizedClientType(self._client)
-
-
-class _BaseContext(_ClientContext):
-    __slots__ = ('_base_url', '_base_headers', '_session',)
-
-    def __init__(self, base_url, client):
-        super().__init__(client=client)
-        self._base_url = base_url
-        self._base_headers: Optional[DecoCommonContext] = None
-        # Checks for the presence of the base_url parameter.  If not, raises utils.exceptions.NoBaseUrl.
-        if not base_url:
-            raise exceptions.NoBaseUrl()
-        self._set_base_headers()
-        self._session = self._set_session()
-
-    def _set_base_headers(self) -> None:
-        """Mounts base headers to a session based on decorating a constructor with decos.Headers.
-        """
-        # Set global, base headers for the sessions if using toboggan native clients.
-        if isinstance(self._client, ClientContext):
-            if self.base_headers:
-                self._client.add_base_headers(fields=self.base_headers.values)
-        # If user provided requests.Session or aiohttp.ClientSession, set headers directly to the client session.
-        elif isinstance(self._client, (Session, ClientSession,)):
-            if self.base_headers:
-                for key, val in self.base_headers.values.items():
-                    self._client.headers[key] = val
-
-    def _set_session(self) -> Union[Session, ClientSession]:
-        """Mounts a configured session to constructor.
-        """
-        # Set session if using one of toboggan's native clients.
-        if isinstance(self._client, ClientContext):
-            if isinstance(self._client.session, Session):
-                return self._client.session
-            elif self._client.session == ClientSession:
-                return self._client.session(**self._client.settings)
-        # Set session if using requests.Session and aiohttp.ClientSession.
-        elif isinstance(self._client, (Session, ClientSession,)):
-            return self._client
-
-    @property
-    def session(self) -> Union[Session, ClientSession]:
-        return self._session
-
-    @property
-    def base_url(self) -> Text:
-        return self._base_url
-
-    @base_url.setter
-    def base_url(self, url: Text) -> None:
-        self._base_url = url
-
-    @property
-    def base_headers(self) -> DecoCommonContext:
-        """Returns model if fields were passed using decos.Headers.
-        """
-        return self._base_headers
-
-    @base_headers.setter
-    def base_headers(self, callable_) -> None:
-        """Stores headers if a model is decorated w/ decos.Headers.
-        """
-        self._base_headers = callable_
-
-    @property
-    def alias(self) -> Text:
-        if isinstance(self.session, Session):
-            return ClientAliases.blocking.name
-        elif isinstance(self.session, ClientSession):
-            return ClientAliases.nonblocking.name
-
-
-class Connector(_BaseContext):
-    """Consolidating constructor for instantiating a session.
-    """
-
+    @typechecked
     def __init__(
             self,
-            base_url: Optional[Text] = None,
-            client: Union[ClientContext, Session, ClientSession] = Client.block()):
-        super().__init__(base_url=base_url, client=client)
+            base_url: Optional[str] = None,
+            client: Union[ClientSession, Session] = RequestsClient()
+    ) -> None:
+        self.__base_headers: Dict = {}
+        self.__base_params: Tuple[Dict, bool] = ({}, False,)
+        self.__base_url = base_url
+        self.__client = client
+        self.__client.headers.update(self.base_headers)
+
+    def __call__(
+            self,
+            base_url: Optional[str] = None,
+            client: Union[ClientSession, Session] = RequestsClient()):
+        return self.__init__(base_url, client)
+
+    def __validate_connector(self):
+        if not self.base_url.scheme or \
+                self.base_url.scheme not in Scheme.__members__:
+            raise exceptions.InvalidScheme(
+                self.base_url, Scheme.__members__)
+        if not self.base_url.netloc:
+            raise exceptions.InvalidBaseUrl(self.base_url)
+
+    @property
+    def client_alias(self) -> Client:
+        if isinstance(self.session, Session):
+            return Client.blocking
+        if isinstance(self.session, ClientSession):
+            return Client.nonblocking
+
+    @property
+    def base_headers(self) -> Dict:
+        return self.__base_headers
+
+    @property
+    def base_params(self) -> Optional[Tuple[Dict, bool]]:
+        return self.__base_params
+
+    @property
+    def base_url(self) -> urlparse:
+        return urlparse(url=self.__base_url)
+
+    @property
+    def session(self) -> Union[ClientSession, Session]:
+        return self.__client
+
+    @base_headers.setter
+    def base_headers(self, mapping: Dict) -> None:
+        for key, val in mapping.items():
+            self.__base_headers[key.casefold()] = val
+
+    @base_params.setter
+    def base_params(self, iterable_: Tuple) -> None:
+        self.__base_params = iterable_
+
+    @base_url.setter
+    def base_url(self, url: str) -> None:
+        self.__base_url = url
+
+    @session.setter
+    def session(self, client: Union[ClientSession, Session]) -> None:
+        self.__client = client
