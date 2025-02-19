@@ -13,5 +13,6 @@ from .decos import (
     post,
     put,
     returns,
+    sends,
     trace,)
 from .models import ResponseObject

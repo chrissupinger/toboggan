@@ -8,7 +8,7 @@ from typeguard import typechecked
 
 # Local
 from . import exceptions
-from .aliases import Client, Request, Response, Verb
+from .aliases import Client, Request, Response, Send, Verb
 from .builders import Message
 from .connector import Connector
 from .models import Configure, ResponseObject
@@ -25,6 +25,7 @@ __all__ = (
     'post',
     'put',
     'returns',
+    'sends',
     'trace',)
 
 
@@ -37,7 +38,7 @@ class _CommonContext:
     @typechecked
     def __init__(
             self,
-            alias: Union[Request, Response],
+            alias: Union[Request, Response, Send],
             value: Optional[Union[Dict, List, Tuple, str]]) -> None:
         self.alias = alias
         self.value = value
@@ -112,6 +113,8 @@ class _CommonContext:
             config_request.headers.update(self.value)
         elif self.alias is Request.params:
             config_request.params = self.value
+        elif self.alias is Request.send_format:
+            config_request.send_format = self.value
         elif self.alias is Response.returns:
             config_response.parameters, config_response.type_ = self.value
         elif self.alias is Request.method:
@@ -189,8 +192,32 @@ class _Params(_CommonContext):
         super().__init__(Request.params, (mapping, encode,))
 
 
+class _Sends:
+    """Namespace for generating the data format to send.
+    """
+    __slots__ = ('form_url_encoded', 'json',)
+
+    def __init__(self) -> None:
+        self.form_url_encoded = self._Data(format_=Send.data)
+        self.json = self._Json(format_=Send.json)
+
+    class _Data(_CommonContext):
+        """Template for sending form-encoded data.
+        """
+
+        def __init__(self, format_: Send):
+            super().__init__(alias=Request.send_format, value=format_)
+
+    class _Json(_CommonContext):
+        """Template for sending JSON-encoded data.
+        """
+
+        def __init__(self, format_: Send):
+            super().__init__(alias=Request.send_format, value=format_)
+
+
 class _Returns:
-    """Namespace for generating the return types f.
+    """Namespace for generating the return type.
     """
     __slots__ = ('json', 'status_code', 'text',)
 
@@ -262,6 +289,21 @@ HTML encoded query parameters can also be explicitly declared.
         @params({'lang': 'en'})
         @get(path='/get')
         def get_(self, **kwargs): pass
+"""
+sends = _Sends()
+"""Provides access to decorators that allow a method to default to sending
+form-encoded data or JSON.  Declaring a subsequent send type will overwrite a
+previous declared send type.
+
+::
+
+    @sends.form_url_encoded
+    @post(path='/post')
+    def post_data(self, body: Body): pass
+    
+    @sends.json
+    @post(path='/post')
+    def post_json(self, body: Body): pass
 """
 returns = _Returns()
 """Provides access to decorators that allow a method to default to returning

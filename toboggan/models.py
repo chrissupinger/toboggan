@@ -8,7 +8,7 @@ from aiohttp import StreamReader
 from multidict import CIMultiDictProxy
 
 # Local
-from .aliases import Request, Response
+from .aliases import Request, Response, Send
 from .annotations import Body, Path, Query, QueryMap
 from .connector import Connector
 
@@ -38,6 +38,7 @@ class Configure:
             'params',
             'path',
             'method',
+            'send_format',
             'signature',
             'url',)
 
@@ -47,12 +48,13 @@ class Configure:
             self.cookies: Dict = {}
             self.data: Optional[str] = None
             self.headers: Dict = {}
-            self.json: Dict = {}
+            self.json: Optional[Dict] = None
             self.params: Optional[Tuple[Dict, bool]] = ({}, False,)
             self.path: Optional[str] = None
             self.method: Optional[str] = None
             self.signature: Optional[Signature] = None
             self.url: Optional[str] = None
+            self.send_format: Optional[Send] = None
 
         def __repr__(self) -> str:
             return \
@@ -78,7 +80,14 @@ class Configure:
         @property
         def __settings_data(self) -> Optional[str]:
             data = self.__signature_nested(Body)
-            return data if isinstance(data, str) else None
+            if data:
+                if self.send_format is Send.data:
+                    return data
+                if self.send_format is Send.json:
+                    return None
+                if isinstance(data, str):
+                    return data
+            return None
 
         @property
         def __settings_header(self) -> Dict:
@@ -87,7 +96,14 @@ class Configure:
         @property
         def __settings_json(self) -> Optional[Dict]:
             json = self.__signature_nested(Body)
-            return json if isinstance(json, Dict) else None
+            if json:
+                if self.send_format is Send.data:
+                    return None
+                if self.send_format is Send.json:
+                    return json
+                if isinstance(json, Dict):
+                    return json
+            return None
 
         @property
         def __settings_params(self) -> Dict:

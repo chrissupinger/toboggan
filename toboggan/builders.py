@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 # Third-party
 from aiohttp import ClientResponse, client_exceptions
-from requests import Request
+from requests import Request, exceptions
 
 # Local
 from .aliases import Response
@@ -32,12 +32,16 @@ class Message:
             prepped = connector.session.prepare_request(
                 Request(**instance.__config_request.settings))
             response = connector.session.send(prepped)
+            try:
+                response_json = response.json()
+            except exceptions.JSONDecodeError as message:
+                response_json = {'error': message}
             return ResponseObject(
                 response.content,
                 response.encoding,
                 response.headers,
                 response.history,
-                response.json(),
+                response_json,
                 response.ok,
                 response.raise_for_status,
                 response.status_code,
