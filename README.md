@@ -80,7 +80,7 @@ from toboggan import AiohttpClient, Connector
 
 
 class Httpbin(Connector):
-  pass
+    pass
 
 
 httpbin = Httpbin(base_url='https://httpbin.org', client=AiohttpClient())
@@ -93,7 +93,7 @@ from toboggan import AiohttpClient, Connector, RequestsClient
 
 
 class Httpbin(Connector):
-  pass
+    pass
 
 
 httpbin = Httpbin(base_url='https://httpbin.org', client=AiohttpClient())
@@ -110,7 +110,7 @@ from toboggan import Connector
 
 
 class Httpbin(Connector):
-  pass
+    pass
 
 
 httpbin = Httpbin(base_url='https://httpbin.org', client=ClientSession())
