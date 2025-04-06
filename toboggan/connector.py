@@ -1,5 +1,5 @@
 # Standard
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 
 # Third-party
@@ -23,7 +23,7 @@ class Connector:
             client: Union[ClientSession, Session] = RequestsClient()
     ) -> None:
         self.__base_headers: Dict = {}
-        self.__base_params: Tuple[Dict, bool] = ({}, False,)
+        self.__base_params: Dict = {}
         self.__base_url = base_url
         self.__client = client
         self.__client.headers.update(self.base_headers)
@@ -54,7 +54,7 @@ class Connector:
         return self.__base_headers
 
     @property
-    def base_params(self) -> Optional[Tuple[Dict, bool]]:
+    def base_params(self) -> Dict:
         return self.__base_params
 
     @property
@@ -71,8 +71,9 @@ class Connector:
             self.__base_headers[key.casefold()] = val
 
     @base_params.setter
-    def base_params(self, iterable_: Tuple) -> None:
-        self.__base_params = iterable_
+    def base_params(self, mapping: Dict) -> None:
+        for key, val in mapping.items():
+            self.__base_params[key.casefold()] = val
 
     @base_url.setter
     def base_url(self, url: str) -> None:

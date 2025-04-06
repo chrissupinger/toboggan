@@ -5,7 +5,7 @@ description = "A wrapper for popular blocking and nonblocking HTTP request libra
 authors = [
     { name = "Chris Supinger", email = "chris.supinger@gmail.com" }
 ]
-license = { text = "mit" }
+license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [

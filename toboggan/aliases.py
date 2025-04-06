@@ -2,7 +2,23 @@
 from enum import Enum
 
 __all__ = (
-    'Client', 'Header', 'Request', 'Response', 'Scheme', 'Send', 'Verb',)
+    'Annotation',
+    'Client',
+    'Header',
+    'Request',
+    'Response',
+    'Scheme',
+    'Send',
+    'Verb',)
+
+
+class Annotation(str, Enum):
+    body = 'Body'
+    path = 'Path'
+    query = 'Query'
+    query_kebab = 'QueryKebab'
+    query_map = 'QueryMap'
+    query_map_kebab = 'QueryMapKebab'
 
 
 class Client(str, Enum):

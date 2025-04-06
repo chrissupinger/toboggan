@@ -168,9 +168,7 @@ class Httpbin(Connector):
 
 #### params
 
-Just like the `headers` decorator, the `params` decorator is versatile.  The `params` decorator requires a mapping and
-has an optional argument of `encode`.  By default, this is set to `False`.  If set to `True`, the parameter mapping
-values will be encoded.
+Just like the `headers` decorator, the `params` decorator is versatile.  The `params` decorator requires a mapping
 
 ```python
 from toboggan import Connector, get, params
@@ -179,7 +177,7 @@ from toboggan import Connector, get, params
 @params({'limit': 50})
 class Httpbin(Connector):
 
-    @params({'email': 'johndoe@example.com'}, encode=True)
+    @params({'email': 'johndoe@example.com'})
     @get(path='/get')
     def get_(self):
         pass
@@ -200,7 +198,7 @@ from toboggan import Connector, get, returns
 
 class Httpbin(Connector):
 
-    @returns.json(key='json')
+    @returns.json
     @get(path='/get')
     def get_json(self):
         pass
@@ -219,6 +217,18 @@ class Httpbin(Connector):
 The `json` return type is able to take a `key` argument.  This argument allows the method to return a nested key-value
 pair.  If `key` is not set, the entire JSON object is returned from the response.  Both `status_code` and `text` do not
 take arguments.
+
+```python
+from toboggan import Connector, get, returns
+
+
+class Httpbin(Connector):
+
+    @returns.json(key='json')
+    @get(path='/get')
+    def get_json(self):
+      pass
+```
 
 #### sends.*
 
@@ -256,7 +266,9 @@ instance method arguments.  The following annotations are available for use:
 - `Body`
 - `Path`
 - `Query`
+- `QueryKebab`
 - `QueryMap`
+- `QueryMapKebab`
 
 ```python
 from toboggan import Body, Connector, Path, Query, QueryMap, get, post
@@ -280,6 +292,26 @@ class Httpbin(Connector):
 The `Body` type annotates the body of the request.  The `Path` type annotates a request path parameter.  The `Query`
 type annotates a request query parameter.  The `QueryMap` annotates a mapping of request query parameters.  A single
 method can only have one `Body` and `QueryMap` annotation and an unlimited number of `Path` and `Query` annotations.
+
+The `QueryKebab` and `QueryMapKebab` types are derivatives of the `Query` and `QueryMap` types (respectfully).  These 
+are used for APIs that still employ kebab casing for their query parameters.  When assigned these types, parameters 
+should be delimited by an underscore (`_`) or, in other words, snake cased.  This annotation negotiates snake case to 
+kebab case.
+
+```python
+from toboggan import Connector, QueryKebab, QueryMapKebab, get
+
+
+class Httpbin(Connector):
+    
+    @get(path='/get')
+    def get_w_query_params(self, employee_id: QueryKebab, **identifiers: QueryMapKebab):
+        pass
+
+
+httpbin = Httpbin(base_url='https://httpbin.org')
+response = httpbin.get_w_query_params(employee_id='a3f5c7d', first_name='John', last_name='Doe')
+```
 
 ### Usage
 
@@ -359,8 +391,7 @@ class PokeApi(Connector):
     """
 
     def __init__(self):
-        super().__init__(
-            base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
+        super().__init__(base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
 
     @returns.json(key=('species', 'name',))
     @get(path='/pokemon/{no}')
@@ -386,8 +417,7 @@ if __name__ == '__main__':
     async def get_many_pokemon(range_):
         api = PokeApi()
         async with api.session:
-            tasks = await asyncio.gather(
-                *[api.pokemon(no=no) for no in range_])
+            tasks = await asyncio.gather(*[api.pokemon(no=no) for no in range_])
             return tasks
 
     responses = asyncio.run(get_many_pokemon(range_=range(1, 152)))
