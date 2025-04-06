@@ -1,7 +1,24 @@
 # Standard
 from enum import Enum
 
-__all__ = ('Client', 'Header', 'Request', 'Response', 'Scheme', 'Verb',)
+__all__ = (
+    'Annotation',
+    'Client',
+    'Header',
+    'Request',
+    'Response',
+    'Scheme',
+    'Send',
+    'Verb',)
+
+
+class Annotation(str, Enum):
+    body = 'Body'
+    path = 'Path'
+    query = 'Query'
+    query_kebab = 'QueryKebab'
+    query_map = 'QueryMap'
+    query_map_kebab = 'QueryMapKebab'
 
 
 class Client(str, Enum):
@@ -22,6 +39,7 @@ class Request(str, Enum):
     params = 'params'
     method = 'method'
     url = 'url'
+    send_format = 'send_format'
 
 
 class Response(str, Enum):
@@ -39,6 +57,11 @@ class Scheme(str, Enum):
     https = 'https'
     irc = 'irc'
     mailto = 'mailto'
+
+
+class Send(str, Enum):
+    data = 'data'
+    json = 'json'
 
 
 class Verb(str, Enum):

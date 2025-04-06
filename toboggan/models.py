@@ -1,15 +1,14 @@
 # Standard
 from inspect import Signature
 from typing import ByteString, Callable, Dict, List, Optional, Tuple, Union
-from urllib.parse import quote_plus
 
 # Third-party
 from aiohttp import StreamReader
 from multidict import CIMultiDictProxy
 
 # Local
-from .aliases import Request, Response
-from .annotations import Body, Path, Query, QueryMap
+from .aliases import Request, Response, Send
+from .annotations import Body, Path, Query, QueryKebab, QueryMap, QueryMapKebab
 from .connector import Connector
 
 __all__ = ('Configure', 'ResponseObject',)
@@ -38,6 +37,7 @@ class Configure:
             'params',
             'path',
             'method',
+            'send_format',
             'signature',
             'url',)
 
@@ -47,12 +47,13 @@ class Configure:
             self.cookies: Dict = {}
             self.data: Optional[str] = None
             self.headers: Dict = {}
-            self.json: Dict = {}
-            self.params: Optional[Tuple[Dict, bool]] = ({}, False,)
+            self.json: Optional[Dict] = None
+            self.params: Dict = {}
             self.path: Optional[str] = None
             self.method: Optional[str] = None
             self.signature: Optional[Signature] = None
             self.url: Optional[str] = None
+            self.send_format: Optional[Send] = None
 
         def __repr__(self) -> str:
             return \
@@ -63,7 +64,7 @@ class Configure:
         def __pp_path(self) -> str:
             """Formats a path used in as a keyword argument to a method
             decorator.  If the path has a leading of trailing slash, both are
-            removed the base path is returned.
+            removed and the base path is returned.
             """
             leading = self.path.replace('/', '', 1) \
                 if self.path.startswith('/') else self.path
@@ -78,7 +79,14 @@ class Configure:
         @property
         def __settings_data(self) -> Optional[str]:
             data = self.__signature_nested(Body)
-            return data if isinstance(data, str) else None
+            if data:
+                if self.send_format is Send.data:
+                    return data
+                if self.send_format is Send.json:
+                    return None
+                if isinstance(data, str):
+                    return data
+            return None
 
         @property
         def __settings_header(self) -> Dict:
@@ -87,15 +95,24 @@ class Configure:
         @property
         def __settings_json(self) -> Optional[Dict]:
             json = self.__signature_nested(Body)
-            return json if isinstance(json, Dict) else None
+            if json:
+                if self.send_format is Send.data:
+                    return None
+                if self.send_format is Send.json:
+                    return json
+                if isinstance(json, Dict):
+                    return json
+            return None
 
         @property
         def __settings_params(self) -> Dict:
             return {
-                **self.__set_params(*self.connector.base_params),
-                **self.__set_params(*self.params),
-                **self.__set_params(self.__signature_flat(Query)),
-                **self.__set_params(self.__signature_nested(QueryMap))}
+                **self.connector.base_params,
+                **self.params,
+                **self.__signature_flat(Query),
+                **self.__signature_flat(QueryKebab),
+                **self.__signature_nested(QueryMap),
+                **self.__signature_nested(QueryMapKebab)}
 
         @property
         def __settings_url(self) -> str:
@@ -140,13 +157,18 @@ class Configure:
 
         def __get_from_signature(
                 self,
-                annotation: Union[Body, Path, Query, QueryMap]) -> List[Dict]:
-            return [{
-                key: self.bindings.get(val.name)} for key, val
-                in self.signature.parameters.items()
-                if val.annotation is annotation]
+                annotation: Union[
+                    Body, Path, Query, QueryKebab, QueryMap, QueryMapKebab]
+        ) -> List[Dict]:
+            base = []
+            for key, val in self.signature.parameters.items():
+                if val.annotation is annotation:
+                    base.append({key: self.bindings.get(val.name)})
+            return base
 
-        def __signature_flat(self, annotation: Union[Path, Query]) -> Dict:
+        def __signature_flat(
+                self, annotation: Union[Path, Query, QueryKebab]
+        ) -> Dict:
             """Queries the signature of the method for flat parameters.
             """
             base = {}
@@ -154,48 +176,43 @@ class Configure:
                 self.__get_from_signature(annotation)
             if from_signature:
                 for mapping in from_signature:
-                    base.update(mapping)
+                    if annotation in (Query, QueryKebab,):
+                        if annotation is QueryKebab:
+                            mapping = self.__kebabize(mapping)
+                        base.update(mapping)
+                    else:
+                        base.update(mapping)
                 return base
             return base
 
-        def __signature_nested(self, annotation: Union[Body, QueryMap]):
+        def __signature_nested(
+                self, annotation: Union[Body, QueryMap, QueryMapKebab]
+        ) -> Union[Dict, str, None]:
             """Queries the signature of the method for nested parameters
             (**kwargs).
             """
+            base = {}
             from_signature = self.__get_from_signature(annotation)
             if from_signature:
                 nested: Dict = next(iter(
                     [val for key, val in next(iter(from_signature)).items()]))
-                if (annotation is Body and isinstance(nested, Dict)) or \
-                        (annotation is Query):
-                    base = {}
-                    if nested:
-                        base.update(nested)
+                if nested:
+                    if isinstance(nested, Dict):
+                        if annotation in (Body, QueryMap, QueryMapKebab,):
+                            if annotation is QueryMapKebab:
+                                nested = self.__kebabize(nested)
+                            base.update(nested)
+                            return base
                         return base
-                    return base
-                if annotation is Body and isinstance(nested, str):
-                    if nested:
-                        return nested
-                    return None
-            return None
-
-        def __set_params(self, value: Dict, encode: bool = False) -> Dict:
-            base = {}
-            if value:
-                if encode:
-                    base.update(self.__encode(value))
-                    return base
-                if not encode:
-                    base.update(value)
-                    return base
+                    if isinstance(nested, str):
+                        if annotation is Body:
+                            return nested
+                        return None
             return base
 
         @staticmethod
-        def __encode(params: Union[Dict, str]) -> Union[Dict, str]:
-            if isinstance(params, Dict):
-                return {key: quote_plus(val) for key, val in params.items()}
-            if isinstance(params, str):
-                return quote_plus(params)
+        def __kebabize(params: Union[Dict, str]) -> Union[Dict, str]:
+            return {key.replace('_', '-'): val for key, val in params.items()}
 
     class Response:
         """Passed as an object across all declared decorators to allow for

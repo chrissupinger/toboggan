@@ -34,7 +34,8 @@ class _Client:
         return self.session
 
     @staticmethod
-    def __get_session_attrs(session: Union[ClientSession, Session]) -> List:
+    def __get_session_attrs(
+            session: Union[ClientSession, Session]) -> Union[List, dict.keys]:
         if isinstance(session, Session):
             return session.__attrs__
         if session is ClientSession and isinstance(session, type):
@@ -42,4 +43,26 @@ class _Client:
 
 
 AiohttpClient = _Client(session=ClientSession)
+"""Returns an instance of `aiohttp.ClientSession`.
+
+Can accept all `aiohttp.ClientSession` parameters: `base_url`, `connector`, 
+`loop`, `cookies`, `headers`, `skip_auto_headers`, `auth`, `json_serialize`, 
+`request_class`, `response_class`, `ws_response_class`, `version`, 
+`cookie_jar`, `connector_owner`, `raise_for_status`, `read_timeout`, 
+`conn_timeout`, `timeout`, `auto_decompress`, `trust_env`, 
+`requote_redirect_url`, `trace_configs`, `read_bufsize`, 
+`fallback_charset_resolver`, `return`
+
+References:
+    - `aiohttp - Client Session <https://docs.aiohttp.org/en/stable/client_reference.html#client-session>`_
+"""
 RequestsClient = _Client(session=Session())
+"""Returns an instance of `requests.Session`.
+
+Can accept all `requests.Session` parameters: `headers`, `cookies`, `auth`, 
+`proxies`, `hooks`, `params`, `verify`, `cert`, `adapters`, `stream`, 
+`trust_env`, `max_redirects`
+
+References:
+    - `Requests - Session Objects <https://requests.readthedocs.io/en/latest/user/advanced/#session-objects>`_
+"""

@@ -1,0 +1,22 @@
+[project]
+name = "toboggan"
+version = "0.1.0"
+description = "A wrapper for popular blocking and nonblocking HTTP request libraries."
+authors = [
+    { name = "Chris Supinger", email = "chris.supinger@gmail.com" }
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "aiohttp[speedups] (>=3.8.3)",
+    "requests (>=2.28.2)",
+    "typeguard (>=2.13.3)"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = true

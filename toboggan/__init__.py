@@ -1,4 +1,4 @@
-from .annotations import Body, Path, Query, QueryMap
+from .annotations import Body, Path, Query, QueryKebab, QueryMap, QueryMapKebab
 from .client import AiohttpClient, RequestsClient
 from .connector import Connector
 from .decos import (
@@ -13,5 +13,6 @@ from .decos import (
     post,
     put,
     returns,
+    sends,
     trace,)
 from .models import ResponseObject
