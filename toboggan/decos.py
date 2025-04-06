@@ -84,8 +84,10 @@ class _Returns:
 
     def __init__(self) -> None:
         self.json = self._Json()
-        self.status_code = ParametricSimple(alias=Response.status_code)
-        self.text = ParametricSimple(alias=Response.text)
+        self.status_code = ParametricSimple(
+            alias=Response.returns, value=(None, Response.status_code,))
+        self.text = ParametricSimple(
+            alias=Response.returns, value=(None, Response.text,))
 
     class _Json(ParametricComplex):
         """Template for the JSON return type.  Allows arguments.
