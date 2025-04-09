@@ -59,22 +59,10 @@ class _Sends:
     __slots__ = ('form_url_encoded', 'json',)
 
     def __init__(self) -> None:
-        self.form_url_encoded = self._Data(format_=Send.data)
-        self.json = self._Json(format_=Send.json)
-
-    class _Data(ParametricSimple):
-        """Template for sending form-encoded data.
-        """
-
-        def __init__(self, format_: Send):
-            super().__init__(alias=Request.send_format, value=(format_,))
-
-    class _Json(ParametricSimple):
-        """Template for sending JSON-encoded data.
-        """
-
-        def __init__(self, format_: Send):
-            super().__init__(alias=Request.send_format, value=(format_,))
+        self.form_url_encoded = ParametricSimple(
+            alias=Request.send_format, value=(Send.data,))
+        self.json = ParametricSimple(
+            alias=Request.send_format, value=(Send.json,))
 
 
 class _Returns:
