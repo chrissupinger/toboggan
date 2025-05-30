@@ -15,7 +15,8 @@ class _Client:
     __slots__ = ('session', 'settings',)
 
     def __init__(
-            self, session: Union[Callable, ClientSession, Session]) -> None:
+            self, session: Union[Callable, ClientSession, Session]
+    ) -> None:
         self.session = session
         self.settings = {}
 
@@ -24,7 +25,8 @@ class _Client:
         for key, val in kwargs.items():
             if key not in attrs:
                 raise exceptions.InvalidSessionSetting(
-                    setting=key, valid_settings=attrs)
+                    setting=key, valid_settings=attrs
+                )
             if isinstance(self.session, Session):
                 setattr(self.session, key, val)
             elif self.session is ClientSession:
@@ -35,11 +37,11 @@ class _Client:
 
     @staticmethod
     def __get_session_attrs(
-            session: Union[ClientSession, Session]) -> Union[List, dict.keys]:
+            session: Union[ClientSession, Session]
+    ) -> Union[List, dict.keys]:
         if isinstance(session, Session):
             return session.__attrs__
-        if session is ClientSession and isinstance(session, type):
-            return session.__init__.__annotations__.keys()
+        return session.__init__.__annotations__.keys()
 
 
 AiohttpClient = _Client(session=ClientSession)

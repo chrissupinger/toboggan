@@ -1,12 +1,8 @@
 # Standard
 from functools import wraps
 from inspect import (
-    getmembers,
-    isawaitable,
-    isclass,
-    iscoroutinefunction,
-    isfunction,
-    signature,)
+    getmembers, isawaitable, isclass, iscoroutinefunction, signature,
+)
 from typing import Callable, Coroutine, Dict, List, Optional, Tuple, Union
 
 # Third-party
@@ -15,7 +11,7 @@ from requests import Request as SyncRequest, exceptions
 from typeguard import typechecked
 
 # Local
-from . import exceptions
+from . import exceptions as exc
 from .aliases import Client, Request, Response, Send
 from .connector import Connector
 from .models import Configure, ResponseObject
@@ -39,12 +35,15 @@ class _Message:
                 connector: Connector) -> ResponseObject:
             instance = cls(config_request, connector)
             prepped = connector.session.prepare_request(
-                SyncRequest(**instance.__config_request.settings))
-            response = connector.session.send(prepped)
+                SyncRequest(**instance.__config_request.request_settings)
+            )
+            response = connector.session.send(
+                prepped, **instance.__config_request.request_options
+            )
             try:
                 response_json = response.json()
             except exceptions.JSONDecodeError as message:
-                response_json = {'error': message}
+                raise exc.DeserializationError(message=str(message))
             return ResponseObject(
                 response.content,
                 response.encoding,
@@ -54,20 +53,24 @@ class _Message:
                 response.ok,
                 response.raise_for_status,
                 response.status_code,
-                response.text)
+                response.text
+            )
 
         @classmethod
         async def by_aiohttp_client(
                 cls,
                 config_request: Configure.Request,
-                connector: Connector) -> ResponseObject:
+                connector: Connector
+        ) -> ResponseObject:
             instance = cls(config_request, connector)
             async with connector.session.request(
-                    **instance.__config_request.settings) as response:
+                    **instance.__config_request.request_settings,
+                    **instance.__config_request.request_options
+            ) as response:
                 try:
                     response_json = await response.json()
                 except client_exceptions.ContentTypeError as message:
-                    response_json = {'error': message}
+                    raise exc.DeserializationError(message=str(message))
                 return ResponseObject(
                     response.content,
                     response.get_encoding(),
@@ -77,7 +80,8 @@ class _Message:
                     response.ok,
                     response.raise_for_status,
                     response.status,
-                    await response.text())
+                    await response.text()
+                )
 
         @staticmethod
         def __get_awaitables(response: ClientResponse) -> List:
@@ -98,20 +102,22 @@ class _Message:
                 name for name, value in getmembers(response)
                 if not name.startswith('_')
                 and name not in ('start', 'wait_for_close',)
-                and iscoroutinefunction(value) or isawaitable(value)]
+                and iscoroutinefunction(value) or isawaitable(value)
+            ]
 
     class Response:
 
         def __init__(
                 self,
                 config_response: Configure.Response,
-                message: ResponseObject):
+                message: ResponseObject
+        ):
             self.__config_response = config_response
             self.__message = message
 
         @staticmethod
         def __get_nested(
-                json: Dict,
+                json: Union[Dict, None],
                 key: Union[List, Tuple, str]
         ) -> Optional[Union[Dict, List, int, str]]:
             iterable_ = (key,) if isinstance(key, str) else key
@@ -130,12 +136,14 @@ class _Message:
         ) -> Union[ResponseObject, Dict, List, int, str]:
             if config_response.type_:
                 if config_response.type_ is Response.json:
-                    json = message.json()
-                    if config_response.parameters:
-                        nested = cls.__get_nested(
-                            json, config_response.parameters)
-                        return nested
-                    return json
+                    if json := message.json():
+                        if config_response.parameters:
+                            nested = cls.__get_nested(
+                                json=json, key=config_response.parameters
+                            )
+                            return nested
+                        return json
+                    raise exc.ServerNullResponseJson(response=json)
                 if config_response.type_ is Response.status_code:
                     return message.status_code
                 if config_response.type_ is Response.text:
@@ -147,10 +155,12 @@ class _Message:
             cls,
             config_request: Configure.Request,
             config_response: Configure.Response,
-            connector: Connector) -> ResponseObject:
+            connector: Connector
+    ) -> ResponseObject:
         response = cls.Response.from_client(
-            config_response,
-            cls.Request.by_requests_client(config_request, connector))
+            config_response=config_response,
+            message=cls.Request.by_requests_client(config_request, connector)
+        )
         return response
 
     @classmethod
@@ -158,7 +168,8 @@ class _Message:
             cls,
             config_request: Configure.Request,
             config_response: Configure.Response,
-            connector: Connector) -> ResponseObject:
+            connector: Connector
+    ) -> ResponseObject:
         response = cls.Response.from_client(
             config_response,
             await cls.Request.by_aiohttp_client(config_request, connector))
@@ -175,7 +186,8 @@ class _CommonContext:
     def __init__(
             self,
             alias: Union[Request, Response, Send],
-            value: Optional[Tuple]) -> None:
+            value: Optional[Tuple]
+    ) -> None:
         self.alias = alias
         self.value = value
 
@@ -189,8 +201,7 @@ class _CommonContext:
     ) -> Union[Connector, Callable, ResponseObject]:
         if isclass(callable_):
             return self.__for_class(callable_)
-        if isfunction(callable_):
-            return self.__for_func(callable_)
+        return self.__for_func(callable_)
 
     def __for_class(self, cls):
         """Wraps a class when it's decorated.  Enables chaining of more than
@@ -205,7 +216,7 @@ class _CommonContext:
         cls.__init__ = new_init
         valid_aliases = (Request.headers, Request.params,)
         if self.alias not in valid_aliases:
-            raise exceptions.InvalidClassDecoChain(self.alias, valid_aliases)
+            raise exc.InvalidClassDecoChain(self.alias, valid_aliases)
         if self.alias is Request.headers:
             cls.base_headers = next(iter(self.value))
         elif self.alias is Request.params:
@@ -246,6 +257,12 @@ class _CommonContext:
         connector, config_request, config_response = args
         if self.alias is Request.headers:
             config_request.headers.update(next(iter(self.value)))
+        elif self.alias is Request.allow_redirects:
+            config_request.allow_redirects = next(iter(self.value))
+        elif self.alias is Request.ssl:
+            config_request.verify, config_request.cert = self.value
+        elif self.alias is Request.timeout:
+            config_request.timeout = next(iter(self.value))
         elif self.alias is Request.params:
             config_request.params = next(iter(self.value))
         elif self.alias is Request.send_format:
@@ -256,8 +273,9 @@ class _CommonContext:
             config_request.path, config_request.method = self.value
             config_request.signature = signature(func)
             bindings = config_request.signature.bind(
-                *(connector,), **kwargs).arguments
-            config_request.bindings.update(bindings)
+                *(connector,), **kwargs
+            )
+            config_request.bindings.update(bindings.arguments)
         return connector, config_request, config_response
 
     @staticmethod
@@ -271,19 +289,19 @@ class _CommonContext:
         use.
         """
         if connector.client_alias is Client.blocking:
-            message = _Message.with_requests_client(
-                config_request, config_response, connector)
-            return message
-        if connector.client_alias is Client.nonblocking:
-            message = _Message.with_aiohttp_client(
-                config_request, config_response, connector)
-            return message
+            return _Message.with_requests_client(
+                config_request, config_response, connector
+            )
+        return _Message.with_aiohttp_client(
+            config_request, config_response, connector
+        )
 
     @staticmethod
     def __set_args(
             args: Union[
                 Tuple[Connector],
-                Tuple[Connector, Configure.Request, Configure.Response]]
+                Tuple[Connector, Configure.Request, Configure.Response]
+            ]
     ) -> Tuple[Connector, Configure.Request, Configure.Response]:
         """Checks for the existence of :py:class:`Connector`,
         :py:class:`Configure.Request` and :py:class:`Configure.Response`
@@ -307,20 +325,26 @@ class ParametricSimple(_CommonContext):
     def __init__(
             self,
             alias: Union[Request, Response, Send],
-            value: Optional[Tuple] = None) -> None:
+            value: Optional[Tuple] = None
+    ) -> None:
         super().__init__(alias=alias, value=value)
 
 
 class ParametricComplex(_CommonContext):
+    """Template for adding return types that can be provided arguments, but are
+    not required.
+    """
 
     def __init__(
-            self, alias: Union[Request, Response, Send], value: Tuple) -> None:
+            self, alias: Union[Request, Response, Send], value: Tuple
+    ) -> None:
         super().__init__(alias=alias, value=value)
 
     def __call__(
             self,
             callable_: Callable = None,
-            **kwargs) -> Callable:
+            **kwargs
+    ) -> Callable:
         if not callable_:
             return self.__class__(**kwargs)
         return super().__call__(callable_)

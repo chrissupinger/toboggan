@@ -1,9 +1,10 @@
 # Standard
 from inspect import Signature
+from ssl import SSLContext
 from typing import ByteString, Callable, Dict, List, Optional, Tuple, Union
 
 # Third-party
-from aiohttp import StreamReader
+from aiohttp import ClientSession, ClientTimeout, Fingerprint, StreamReader
 from multidict import CIMultiDictProxy
 
 # Local
@@ -28,22 +29,25 @@ class Configure:
             request.* = ...
         """
         __slots__ = (
+            'allow_redirects',
+            'cert',
             'bindings',
             'connector',
             'cookies',
             'data',
             'headers',
             'json',
+            'method',
             'params',
             'path',
-            'method',
             'send_format',
             'signature',
-            'url',)
+            'timeout',
+            'url',
+            'verify',
+        )
 
         def __init__(self):
-            self.bindings: Dict = {}
-            self.connector: Optional[Connector] = None
             self.cookies: Dict = {}
             self.data: Optional[str] = None
             self.headers: Dict = {}
@@ -51,9 +55,15 @@ class Configure:
             self.params: Dict = {}
             self.path: Optional[str] = None
             self.method: Optional[str] = None
-            self.signature: Optional[Signature] = None
             self.url: Optional[str] = None
+            self.bindings: Dict = {}
+            self.signature: Optional[Signature] = None
+            self.connector: Optional[Connector] = None
             self.send_format: Optional[Send] = None
+            self.allow_redirects: Union[bool, None] = None
+            self.cert: Union[tuple, str, None] = None
+            self.timeout: Union[float, int, None] = None
+            self.verify: Union[bool, str, SSLContext, Fingerprint, None] = None
 
         def __repr__(self) -> str:
             return \
@@ -112,19 +122,40 @@ class Configure:
                 **self.__signature_flat(Query),
                 **self.__signature_flat(QueryKebab),
                 **self.__signature_nested(QueryMap),
-                **self.__signature_nested(QueryMapKebab)}
+                **self.__signature_nested(QueryMapKebab)
+            }
 
         @property
         def __settings_url(self) -> str:
             path_params = self.__signature_flat(Path)
-            return \
-                f'{self.connector.base_url.geturl()}/{self.__pp_path}'.format(**path_params)
+            return f'{self.connector.base_url.geturl()}/' \
+                   f'{self.__pp_path}'.format(**path_params)
 
         @property
-        def settings(self) -> Dict:
+        def request_options(self) -> Dict:
+            base = {}
+            if isinstance(self.allow_redirects, bool):
+                base[Request.allow_redirects] = self.allow_redirects
+            if isinstance(self.connector.session, ClientSession):
+                if self.timeout:
+                    timeout = ClientTimeout(total=self.timeout)
+                    base[Request.timeout] = timeout
+                if isinstance(self.verify, (bool, SSLContext, Fingerprint)):
+                    base[Request.ssl] = self.verify
+            else:
+                if self.timeout:
+                    base[Request.timeout] = self.timeout
+                if isinstance(self.verify, (bool, str,)):
+                    base[Request.verify] = self.verify
+                if self.cert:
+                    base[Request.cert] = self.cert
+            return base
+
+        @property
+        def request_settings(self) -> Dict:
             """Dictionary used for configuring a request.
 
-            ::
+            Usage: ::
 
                 # Returns a dictionary
                 return {
@@ -139,11 +170,13 @@ class Configure:
 
                 # Usage with Requests
                 prepped = connector.session.prepare_request(
-                    Request(**instance.__config_request.settings))
+                    Request(**instance.__config_request.settings)
+                )
 
                 # Usage with aiohttp
                 async with connector.session.request(
-                    **instance.__config_request.settings) as response:
+                    **instance.__config_request.settings
+                ) as response:
                         ...
             """
             return {
@@ -151,9 +184,10 @@ class Configure:
                 Request.data: self.__settings_data,
                 Request.headers: self.__settings_header,
                 Request.json: self.__settings_json,
-                Request.params: self.__settings_params,
                 Request.method: self.method,
-                Request.url: self.__settings_url}
+                Request.params: self.__settings_params,
+                Request.url: self.__settings_url
+            }
 
         def __get_from_signature(
                 self,
@@ -267,7 +301,8 @@ class ResponseObject:
         'history',
         'ok',
         'status_code',
-        'text',)
+        'text',
+    )
 
     def __init__(
             self,
@@ -279,7 +314,8 @@ class ResponseObject:
             ok: bool,
             raise_for_status: Callable,
             status_code: int,
-            text: str) -> None:
+            text: str
+    ) -> None:
         self.__json = json
         self.__raise_for_status = raise_for_status
         self.content = content

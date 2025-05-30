@@ -1,13 +1,25 @@
 # Standard
-from typing import Iterable
+from typing import Any, Iterable
 from urllib.parse import urlparse
 
 __all__ = (
+    'DeserializationError',
     'InvalidBaseUrl',
     'InvalidClassDecoChain',
     'InvalidScheme',
     'InvalidSessionSetting',
-    'NoVerb',)
+    'NoVerb',
+    'ServerNullResponseJson',
+)
+
+
+class DeserializationError(Exception):
+
+    def __init__(self, message: str):
+        message: str = \
+            'There was an error trying to deserialize the response body ' \
+            f'into JSON.  {message}'
+        super().__init__(message)
 
 
 class InvalidBaseUrl(Exception):
@@ -67,4 +79,13 @@ class NoVerb(Exception):
             'No verb has been declared.  Valid verbs are: ' \
             f'{", ".join(verbs)}.  Decorate your methods using `@` and a ' \
             'valid verb (i.e., @get(...); @post(...); @put(...); etc.).'
+        super().__init__(message)
+
+
+class ServerNullResponseJson(Exception):
+
+    def __init__(self, response: Any) -> None:
+        message: str = \
+            'The server was expected to respond with a JSON body, but a null '\
+            f'response body was likely received.  Response: {response}'
         super().__init__(message)

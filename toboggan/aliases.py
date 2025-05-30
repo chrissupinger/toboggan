@@ -9,7 +9,8 @@ __all__ = (
     'Response',
     'Scheme',
     'Send',
-    'Verb',)
+    'Verb',
+)
 
 
 class Annotation(str, Enum):
@@ -32,14 +33,19 @@ class Header(str, Enum):
 
 
 class Request(str, Enum):
+    allow_redirects = 'allow_redirects'
+    cert = 'cert'
     cookies = 'cookies'
     data = 'data'
     headers = 'headers'
     json = 'json'
-    params = 'params'
     method = 'method'
-    url = 'url'
+    params = 'params'
     send_format = 'send_format'
+    ssl = 'ssl'
+    timeout = 'timeout'
+    url = 'url'
+    verify = 'verify'
 
 
 class Response(str, Enum):

@@ -8,7 +8,7 @@ from requests import Session
 from typeguard import typechecked
 
 # Local
-from . import exceptions
+from . import exceptions as exc
 from .aliases import Client, Scheme
 from .client import RequestsClient
 
@@ -35,19 +35,21 @@ class Connector:
         return self.__init__(base_url, client)
 
     def __validate_connector(self):
-        if not self.base_url.scheme or \
-                self.base_url.scheme not in Scheme.__members__:
-            raise exceptions.InvalidScheme(
-                self.base_url, Scheme.__members__)
+        if (
+                not self.base_url.scheme or
+                self.base_url.scheme not in Scheme.__members__
+        ):
+            raise exc.InvalidScheme(
+                self.base_url, Scheme.__members__
+            )
         if not self.base_url.netloc:
-            raise exceptions.InvalidBaseUrl(self.base_url)
+            raise exc.InvalidBaseUrl(self.base_url)
 
     @property
     def client_alias(self) -> Client:
         if isinstance(self.session, Session):
             return Client.blocking
-        if isinstance(self.session, ClientSession):
-            return Client.nonblocking
+        return Client.nonblocking
 
     @property
     def base_headers(self) -> Dict:
