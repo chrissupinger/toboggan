@@ -1,86 +1,45 @@
 # Standard
+from __future__ import annotations
 from typing import Dict, Optional, Union
-from urllib.parse import urlparse
 
 # Third-party
 from aiohttp import ClientSession
 from requests import Session
-from typeguard import typechecked
 
 # Local
-from . import exceptions as exc
-from .aliases import Client, Scheme
-from .client import RequestsClient
+from .aliases import AliasSessionType
+
+__all__ = ('Connector',)
 
 
 class Connector:
-    __slots__ = ('__base_headers', '__base_params', '__base_url', '__client',)
+    __slots__ = ('base_url', 'client',)
+    base_headers: Dict
+    base_query_params: Dict
 
-    @typechecked
-    def __init__(
-            self,
-            base_url: Optional[str] = None,
-            client: Union[ClientSession, Session] = RequestsClient()
-    ) -> None:
-        self.__base_headers: Dict = {}
-        self.__base_params: Dict = {}
-        self.__base_url = base_url
-        self.__client = client
-        self.__client.headers.update(self.base_headers)
+    def __init__(self, base_url, client = Session()):
+        self.base_url: Optional[str] = base_url
+        self.client: Optional[Union[Session, ClientSession]] = client
 
-    def __call__(
-            self,
-            base_url: Optional[str] = None,
-            client: Union[ClientSession, Session] = RequestsClient()):
-        return self.__init__(base_url, client)
+    def __call__(self, base_url = None, client = Session()):
+        return self.__init__(base_url=base_url, client=client)
 
-    def __validate_connector(self):
-        if (
-                not self.base_url.scheme or
-                self.base_url.scheme not in Scheme.__members__
-        ):
-            raise exc.InvalidScheme(
-                self.base_url, Scheme.__members__
-            )
-        if not self.base_url.netloc:
-            raise exc.InvalidBaseUrl(self.base_url)
+    def __repr__(self):
+        return (
+            f'{self.__class__.__name__}(base_url={self.base_url}, '
+            f'client={self.client}, '
+            f'base_headers={getattr(self, "base_headers", None)}, '
+            f'base_query_params={getattr(self, "base_query_params", None)}'
+            ')'
+        )
+
+    def session(self):
+        return self.client
 
     @property
-    def client_alias(self) -> Client:
+    def client_type(self):
         if isinstance(self.session, Session):
-            return Client.blocking
-        return Client.nonblocking
-
-    @property
-    def base_headers(self) -> Dict:
-        return self.__base_headers
-
-    @property
-    def base_params(self) -> Dict:
-        return self.__base_params
-
-    @property
-    def base_url(self) -> urlparse:
-        return urlparse(url=self.__base_url)
-
-    @property
-    def session(self) -> Union[ClientSession, Session]:
-        return self.__client
-
-    @base_headers.setter
-    def base_headers(self, mapping: Dict) -> None:
-        for key, val in mapping.items():
-            self.__base_headers[key.casefold()] = val
-
-    @base_params.setter
-    def base_params(self, mapping: Dict) -> None:
-        for key, val in mapping.items():
-            self.__base_params[key.casefold()] = val
-
-    @base_url.setter
-    def base_url(self, url: str) -> None:
-        self.__base_url = url
-
-    @session.setter
-    def session(self, client: Union[ClientSession, Session]) -> None:
-        self.__client = client
+            return AliasSessionType.REQUESTS
+        elif isinstance(self.session, ClientSession):
+            return AliasSessionType.AIOHTTP
+        return None
