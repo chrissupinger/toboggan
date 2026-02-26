@@ -1,45 +1,55 @@
 # Standard
 from __future__ import annotations
-from typing import Dict, Optional, Union
+from typing import Any, Optional
 
-# Third-party
-from aiohttp import ClientSession
 from requests import Session
 
 # Local
 from .aliases import AliasSessionType
+from .clients import resolve_client_type
 
 __all__ = ('Connector',)
 
 
-class Connector:
-    __slots__ = ('base_url', 'client',)
-    base_headers: Dict
-    base_query_params: Dict
+class MetaclassConnector(type):
 
-    def __init__(self, base_url, client = Session()):
-        self.base_url: Optional[str] = base_url
-        self.client: Optional[Union[Session, ClientSession]] = client
+    def __new__(cls, name, bases, attrs):
+        _cls = super().__new__(cls, name, bases, attrs)
+        _cls.base_headers = {}
+        _cls.base_query_params = {}
+        return _cls
 
-    def __call__(self, base_url = None, client = Session()):
-        return self.__init__(base_url=base_url, client=client)
+
+class Connector(metaclass=MetaclassConnector):
+
+    def __init__(self, base_url: Optional[str], client: Any = Session()):
+        self.base_url = base_url
+        self.client = client
 
     def __repr__(self):
         return (
-            f'{self.__class__.__name__}(base_url={self.base_url}, '
+            f'{self.__class__.__name__}('
+            f'base_url={self.base_url}, '
             f'client={self.client}, '
             f'base_headers={getattr(self, "base_headers", None)}, '
             f'base_query_params={getattr(self, "base_query_params", None)}'
             ')'
         )
 
+    def __call__(
+            self,
+            base_url: Optional[str] = None,
+            client: Optional[Session, Any] = None
+    ) -> Connector:
+        if base_url:
+            self.base_url = base_url
+        if client:
+            self.client = client
+        return self
+
     def session(self):
         return self.client
 
     @property
-    def client_type(self):
-        if isinstance(self.session, Session):
-            return AliasSessionType.REQUESTS
-        elif isinstance(self.session, ClientSession):
-            return AliasSessionType.AIOHTTP
-        return None
+    def client_type(self) -> AliasSessionType:
+        return resolve_client_type(self.client)

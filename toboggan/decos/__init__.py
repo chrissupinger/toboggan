@@ -1,3 +1,4 @@
+from .monomorphic import returns, sends
 from .polymorphic import headers, params
 from .verbs import (
     connect,
@@ -10,5 +11,3 @@ from .verbs import (
     put,
     trace,
 )
-from .returns import returns
-from .sends import sends

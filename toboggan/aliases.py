@@ -19,6 +19,8 @@ class AliasReturnType(Enum):
 
 class AliasSessionType(Enum):
     AIOHTTP = auto()
+    HTTPX = auto()
+    NONE = auto()
     REQUESTS = auto()
 
 

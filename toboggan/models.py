@@ -1,18 +1,14 @@
 # Standard
-from typing import Dict, List, NamedTuple, Optional, Tuple, Union
-
-# Local
-from .aliases import AliasSendsType, AliasReturnType
-from .connector import Connector
+from typing import Dict, NamedTuple, Union
 
 __all__ = (
     'TypeHeadersDump',
     'TypeKwDump',
+    'TypeKwObjDump',
     'TypeNestedDump',
     'TypeQueryParams',
     'TypeSendDataDump',
     'TypeSendJsonDump',
-    'TypeWrapperMapping',
 )
 
 
@@ -20,9 +16,13 @@ class TypeHeadersDump(NamedTuple):
     headers: Dict[str, str]
 
 
-class TypeKwDump(NamedTuple):
+class TypeKwObjDump(NamedTuple):
     sig_type: type
-    kw_value: Union[str, int]
+    kw_value: Union[Dict, str, int]
+
+
+class TypeKwDump(NamedTuple):
+    dump: Dict = {}
 
 
 class TypeNestedDump(NamedTuple):
@@ -40,15 +40,3 @@ class TypeSendDataDump(NamedTuple):
 
 class TypeSendJsonDump(NamedTuple):
     json: Union[Dict, str]
-
-
-class TypeWrapperMapping(NamedTuple):
-    conn: Connector
-    method: str
-    path: str
-    kw_dump: Dict[str, Dict]
-    ctx_headers_value: Dict
-    ctx_query_params_value: Dict
-    ctx_sends_type: Optional[AliasSendsType]
-    ctx_returns_type: Optional[AliasReturnType]
-    ctx_returns_json_key: Optional[Union[str, List[str], Tuple[str]]]

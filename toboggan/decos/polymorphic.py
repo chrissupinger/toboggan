@@ -6,12 +6,11 @@ from inspect import isclass
 from .contexts import _ctx_headers_value, _ctx_query_params_value
 from toboggan import Connector
 from toboggan.aliases import AliasReqOptType
-from toboggan.interfaces import InterfaceDecoPolymorphic
 
 __all__ = ('headers', 'params',)
 
 
-class Polymorphic(InterfaceDecoPolymorphic):
+class Polymorphic:
     __slots__ = ('__context', '__value',)
 
     def __init__(self, context, value):
@@ -32,9 +31,9 @@ class Polymorphic(InterfaceDecoPolymorphic):
 
         cls.__init__ = new_init
         if self.__context is AliasReqOptType.HEADERS:
-            cls.base_headers = self.__value
+            cls.base_headers.update(self.__value)
         elif self.__context is AliasReqOptType.QUERY:
-            cls.base_query_params = self.__value
+            cls.base_query_params.update(self.__value)
         return cls
 
     def _for_func(self, func):
