@@ -55,30 +55,13 @@ class Verb:
                 ctx_returns_type=_ctx_returns_type.get(),
                 ctx_returns_json_key=_ctx_returns_json_value.get(),
             )
+            settings = resolve.settings_dump(
+                session=conn.session(), method=self.__method
+            )
             if conn.client_type is AliasSessionType.AIOHTTP:
-                return aiohttp_.request(
-                    session=conn.session(),
-                    method=self.__method,
-                    url=resolve.url(),
-                    headers=resolve.headers(),
-                    query_params=resolve.query_params(),
-                    send=resolve.send(),
-                    options=resolve.options(),
-                    returns_type=resolve.returns_type,
-                    returns_json_key=resolve.returns_json_key
-                )
+                return aiohttp_.request(**settings._asdict())
             elif conn.client_type is AliasSessionType.REQUESTS:
-                return requests_.request(
-                    session=conn.session(),
-                    method=self.__method,
-                    url=resolve.url(),
-                    headers=resolve.headers(),
-                    query_params=resolve.query_params(),
-                    send=resolve.send(),
-                    options=resolve.options(),
-                    returns_type=resolve.returns_type,
-                    returns_json_key=resolve.returns_json_key
-                )
+                return requests_.request(**settings._asdict())
             raise RuntimeError('...')
         return wrapper
 
@@ -93,7 +76,7 @@ class Verb:
             for sig_key, sig_value in self.__signature.items():
                 if sig_value in (Body, Path, Query, QueryKebab,):
                     base.dump[sig_key] = TypeKwObjDump(
-                        sig_value, kwargs.get(sig_key)
+                        sig_type=sig_value, kw_value=kwargs.get(sig_key)
                     )
                 if sig_value is Options:
                     opts = {
@@ -101,26 +84,23 @@ class Verb:
                         if key not in base.dump.keys()
                     }
                     base.dump[sig_key] = TypeKwObjDump(
-                        sig_value, opts
+                        sig_type=sig_value, kw_value=opts
                     )
             return base
 
 
 class connect(Verb):
-    """The CONNECT method establishes a tunnel to the server identified by the
-    target resource
+    """The CONNECT method establishes a tunnel to the server identified 
+    by the target resource
 
     ::
 
         @connect(path='/connect')
         def connect_(self, **kwargs): pass
-
-    References:
-        - `CONNECT <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT>`_
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)
 
 
 class delete(Verb):
@@ -130,65 +110,52 @@ class delete(Verb):
 
         @delete(path='/delete')
         def delete_(self, **kwargs): pass
-
-    References:
-        - `DELETE <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE>`_
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)
 
 
 class get(Verb):
-    """The GET method requests a representation of the specified resource;
-    requests using GET should only retrieve data
+    """The GET method requests a representation of the specified 
+    resource; requests using GET should only retrieve data
 
     ::
 
         @get(path='/get')
         def get_(self, **kwargs): pass
-
-    References:
-        - `GET <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET>`_
-
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)
 
 
 class head(Verb):
-    """The HEAD method asks for a response identical to a GET request, but
-    without the response body
+    """The HEAD method asks for a response identical to a GET request, 
+    but without the response body
 
     ::
 
         @head(path='/head')
         def head_(self, **kwargs): pass
-
-    References:
-        - `HEAD <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD>`_
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)
 
 
 class options(Verb):
-    """The OPTIONS method describes the communication options for the target
-    resource
+    """The OPTIONS method describes the communication options for the 
+    target resource
 
     ::
 
         @options(path='/options')
         def options_(self, **kwargs): pass
-
-    References:
-        - `OPTIONS <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS>`_
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)
 
 
 class patch(Verb):
@@ -198,30 +165,24 @@ class patch(Verb):
 
         @patch(path='/patch')
         def patch_(self, **kwargs): pass
-
-    References:
-        - `PATCH <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PATCH>`_
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)
 
 
 class post(Verb):
-    """ The POST method submits an entity to the specified resource, often
-    causing a change in state or side effects on the server
+    """ The POST method submits an entity to the specified resource, 
+    often causing a change in state or side effects on the server
 
     ::
 
         @post(path='/post')
         def post_(self, **kwargs): pass
-
-    References:
-        - `POST <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST>`_
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)
 
 
 class put(Verb):
@@ -232,27 +193,21 @@ class put(Verb):
 
         @put(path='/put')
         def put_(self, **kwargs): pass
-
-    References:
-        - `PUT <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT>`_
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)
 
 
 class trace(Verb):
-    """The TRACE method performs a message loop-back test along the path to the
-    target resource
+    """The TRACE method performs a message loop-back test along the path 
+    to the target resource
 
     ::
 
         @trace(path='/trace')
         def trace_(self, **kwargs): pass
-
-    References:
-        - `TRACE <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE>`_
     """
 
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, path: str):
+        super().__init__(path=path)

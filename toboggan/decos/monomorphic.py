@@ -56,8 +56,8 @@ class Returns:
 
     def __init__(self):
         self.json = self.Json()
-        """If wanting to exclusively return the response's JSON object, a flat
-        decoration can be used
+        """If wanting to exclusively return the response's JSON object, 
+        a flat decoration can be used
         
         ::
         
@@ -65,9 +65,10 @@ class Returns:
             @get(path='/get')
             def get_(self, **kwargs): pass
             
-        Values can be passed to the `key` argument.  This is not required.  If
-        used, the values passed will be attempted to be negotiated.  `key` can
-        be of type `list`, `tuple`, `str` or `None`
+        Values can be passed to the `key` argument.  This is not 
+        required.  If used, the values passed will be attempted to be 
+        negotiated.  `key` can be of type `list`, `tuple`, `str` or 
+        `None`
         
         ::
         
@@ -85,7 +86,8 @@ class Returns:
             def post_(self, **kwargs): pass
         """
         self.text = self.Adaptable(context=AliasReturnType.TEXT)
-        """The response's text representation can be exclusively returned
+        """The response's text representation can be exclusively 
+        returned
 
         ::
         
@@ -144,10 +146,11 @@ class Sends:
 
 
 returns = Returns()
-"""Provides access to decorators that allow a method to default to returning
-JSON, text or status code when invoked.  Declaring a subsequent return type
-will overwrite a previous declared return type."""
+"""Provides access to decorators that allow a method to default to 
+returning JSON, text or status code when invoked.  Declaring a 
+subsequent return type will overwrite a previous declared return 
+type."""
 sends = Sends()
-"""Provides access to decorators that allow a method to default to sending
-form-encoded data or JSON.  Declaring a subsequent send type will overwrite a
-previous declared send type."""
+"""Provides access to decorators that allow a method to default to 
+sending form-encoded data or JSON.  Declaring a subsequent send type 
+will overwrite a previous declared send type."""

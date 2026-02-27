@@ -23,7 +23,9 @@ class ConfigRequests:
             json = response.json()
             if ctx_returns_json_key:
                 if ctx_returns_json_key:
-                    return _get_nested(json, ctx_returns_json_key)
+                    return _get_nested(
+                        json=json, ctx_returns_json_key=ctx_returns_json_key
+                    )
             return json
         elif ctx_returns_type is AliasReturnType.STATUS_CODE:
             return response.status_code

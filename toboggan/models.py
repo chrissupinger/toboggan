@@ -1,5 +1,8 @@
 # Standard
-from typing import Dict, NamedTuple, Union
+from typing import Dict, NamedTuple, Optional, Union
+
+# Local
+from toboggan.aliases import AliasReturnType
 
 __all__ = (
     'TypeHeadersDump',
@@ -7,6 +10,7 @@ __all__ = (
     'TypeKwObjDump',
     'TypeNestedDump',
     'TypeQueryParams',
+    'TypeRequestSettings',
     'TypeSendDataDump',
     'TypeSendJsonDump',
 )
@@ -32,6 +36,18 @@ class TypeNestedDump(NamedTuple):
 
 class TypeQueryParams(NamedTuple):
     params: Dict
+
+
+class TypeRequestSettings(NamedTuple):
+    session: object
+    method: str
+    url: str
+    headers: Dict
+    query_params: Dict
+    send: Union[Dict, str]
+    options: Dict
+    returns_type: Optional[AliasReturnType]
+    returns_json_key: Union[None, str, list[str], tuple[str]]
 
 
 class TypeSendDataDump(NamedTuple):

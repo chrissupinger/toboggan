@@ -1,6 +1,6 @@
 # Standard
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from requests import Session
 
@@ -22,7 +22,11 @@ class MetaclassConnector(type):
 
 class Connector(metaclass=MetaclassConnector):
 
-    def __init__(self, base_url: Optional[str], client: Any = Session()):
+    def __init__(
+            self,
+            base_url: Optional[str] = None,
+            client: Optional[Union[Session, Any]] = Session()
+        ):
         self.base_url = base_url
         self.client = client
 
@@ -39,7 +43,7 @@ class Connector(metaclass=MetaclassConnector):
     def __call__(
             self,
             base_url: Optional[str] = None,
-            client: Optional[Session, Any] = None
+            client: Optional[Union[Session, Any]] = None
     ) -> Connector:
         if base_url:
             self.base_url = base_url

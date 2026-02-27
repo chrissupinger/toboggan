@@ -12,6 +12,7 @@ from toboggan.models import (
     TypeKwDump,
     TypeNestedDump,
     TypeQueryParams,
+    TypeRequestSettings,
     TypeSendDataDump,
     TypeSendJsonDump,
 )
@@ -190,9 +191,24 @@ class ResolverRequest:
         return opts
 
     @property
-    def returns_type(self) -> AliasReturnType:
+    def returns_type(self) -> Optional[AliasReturnType]:
         return self.__ctx_returns_type
 
     @property
     def returns_json_key(self) -> Optional[Union[str, List[str], Tuple[str]]]:
         return self.__ctx_returns_json_key
+
+    def settings_dump(
+            self, session: Session, method: str
+        ) -> TypeRequestSettings:
+        return TypeRequestSettings(
+            session=session,
+            method=method,
+            url=self.url(),
+            headers=self.headers(),
+            query_params=self.query_params(),
+            send=self.send(),
+            options=self.options(),
+            returns_type=self.returns_type,
+            returns_json_key=self.returns_json_key
+        )
