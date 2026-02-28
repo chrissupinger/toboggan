@@ -15,17 +15,13 @@ class ConfigRequests:
     def _resolve_response(
             response: Response,
             ctx_returns_type: Optional[AliasReturnType] = None,
-            ctx_returns_json_key: Optional[
-                Union[str, List[str], Tuple[str]]
-            ] = None
+            ctx_returns_json_key: Optional[Union[str, List[str], Tuple[str]]] = None
     ) -> Union[Response, Dict, str, int]:
         if ctx_returns_type is AliasReturnType.JSON:
             json = response.json()
             if ctx_returns_json_key:
                 if ctx_returns_json_key:
-                    return _get_nested(
-                        json=json, ctx_returns_json_key=ctx_returns_json_key
-                    )
+                    return _get_nested(json=json, value=ctx_returns_json_key)
             return json
         elif ctx_returns_type is AliasReturnType.STATUS_CODE:
             return response.status_code
@@ -43,9 +39,7 @@ class ConfigRequests:
             send: Dict,
             options: Dict,
             returns_type: Optional[AliasReturnType] = None,
-            returns_json_key: Optional[
-                Union[str, List[str], Tuple[str]]
-            ] = None,
+            returns_json_key: Optional[Union[str, List[str], Tuple[str]]] = None,
             **kwargs
     ) -> Union[Response, dict, int, str, None]:
         _merge_mappings(base=headers, supp=options, target='headers')

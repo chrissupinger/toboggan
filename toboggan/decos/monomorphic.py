@@ -130,7 +130,7 @@ class Sends:
             def post_data(self, body: Body): pass
         """
         self.json = self.Adaptable(context=AliasSendsType.JSON)
-        """Default to sending JSON data in the request.
+        """Default to sending JSON data in the request
 
         ::
         
