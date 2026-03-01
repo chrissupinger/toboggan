@@ -58,6 +58,64 @@ def _merge_mappings(
             base.get(target).update(supp[key])
         supp.pop(target, None)
 
+def _kebabize(key: str) -> str:
+        return key.replace('_', '-')
+
+def _resolve_options(kw_dump: TypeKwDump) -> Dict:
+        for _, val in kw_dump.dump.items():
+            if val.sig_type is Options and val.kw_value:
+                return val.kw_value
+        return {}
+
+def _resolve_headers(base_headers: Dict, ctx_headers_value: Dict) -> Dict:
+        base = {}
+        base.update(base_headers)
+        base.update(ctx_headers_value)
+        return TypeHeadersDump(base)._asdict() if base else {}
+
+def _resolve_path_params(kw_dump: TypeKwDump, path: str) -> str:
+        params = [
+            {key: val.kw_value} for key, val in kw_dump.dump.items()
+            if val.sig_type is Path and val.kw_value
+        ]
+        if params:
+            resolved = {}
+            for param in params:
+                resolved.update(param)
+            return path.format(**resolved)
+        return path
+
+def _resolve_send(
+            kw_dump: TypeKwDump,
+            ctx_sends_type: Optional[AliasSendsType] = None
+    ) -> Dict:
+        body = next(
+            (obj for obj in kw_dump.dump.values() if obj.sig_type is Body),
+            None
+        )
+        if body:
+            if ctx_sends_type and ctx_sends_type is AliasSendsType.DATA:
+                return TypeSendDataDump(body.kw_value)._asdict()
+            return TypeSendJsonDump(body.kw_value)._asdict()
+        return {}
+
+def _resolve_query_params(
+            base_query_params: Dict,
+            ctx_query_params_value: Dict,
+            kw_dump: TypeKwDump
+    ) -> Dict:
+        base = {}
+        base.update(base_query_params)
+        base.update(ctx_query_params_value)
+        for key, val in kw_dump.dump.items():
+            if val.sig_type is Query and val.kw_value:
+                base[key] = val.kw_value
+            elif val.sig_type is QueryKebab and val.kw_value:
+                base[_kebabize(key)] = val.kw_value
+        if base:
+            return TypeQueryParams(base)._asdict()
+        return base
+
 
 class ResolverRequest:
     __slots__ = (
@@ -99,83 +157,19 @@ class ResolverRequest:
         self.__ctx_returns_type = ctx_returns_type
         self.__ctx_returns_json_key = ctx_returns_json_key
 
-    @staticmethod
-    def __kebabize(key: str) -> str:
-        return key.replace('_', '-')
-
-    @staticmethod
-    def __resolve_options(kw_dump: TypeKwDump) -> Dict:
-        for key, val in kw_dump.dump.items():
-            if val.sig_type is Options and val.kw_value:
-                return val.kw_value
-        return {}
-
-    @staticmethod
-    def __resolve_headers(base_headers: Dict, ctx_headers_value: Dict) -> Dict:
-        base = {}
-        base.update(base_headers)
-        base.update(ctx_headers_value)
-        return TypeHeadersDump(base)._asdict() if base else {}
-
-    @staticmethod
-    def __resolve_path_params(kw_dump: TypeKwDump, path: str) -> str:
-        params = [
-            {key: val.kw_value} for key, val in kw_dump.dump.items()
-            if val.sig_type is Path and val.kw_value
-        ]
-        if params:
-            resolved = {}
-            for param in params:
-                resolved.update(param)
-            return path.format(**resolved)
-        return path
-
-    @staticmethod
-    def __resolve_send(
-            kw_dump: TypeKwDump,
-            ctx_sends_type: Optional[AliasSendsType] = None
-    ) -> Dict:
-        body = next(
-            (obj for obj in kw_dump.dump.values() if obj.sig_type is Body),
-            None
-        )
-        if body:
-            if ctx_sends_type and ctx_sends_type is AliasSendsType.DATA:
-                return TypeSendDataDump(body.kw_value)._asdict()
-            return TypeSendJsonDump(body.kw_value)._asdict()
-        return {}
-
-    def __resolve_query_params(
-            self,
-            base_query_params: Dict,
-            ctx_query_params_value: Dict,
-            kw_dump: TypeKwDump
-    ) -> Dict:
-        base = {}
-        base.update(base_query_params)
-        base.update(ctx_query_params_value)
-        for key, val in kw_dump.dump.items():
-            if val.sig_type is Query and val.kw_value:
-                base[key] = val.kw_value
-            elif val.sig_type is QueryKebab and val.kw_value:
-                base[self.__kebabize(key)] = val.kw_value
-        if base:
-            return TypeQueryParams(base)._asdict()
-        return base
-
     def url(self) -> str:
-        path = self.__resolve_path_params(self.__kw_dump, self.__path)
+        path = _resolve_path_params(self.__kw_dump, self.__path)
         return self.__base_url + path
 
     def headers(self) -> Dict:
-        mapping: Dict = self.__resolve_headers(
+        mapping: Dict = _resolve_headers(
             base_headers=self.__base_headers,
             ctx_headers_value=self.__ctx_headers_value
         )
         return mapping
 
     def query_params(self) -> Dict:
-        mapping: Dict = self.__resolve_query_params(
+        mapping: Dict = _resolve_query_params(
             base_query_params=self.__base_query_params,
             ctx_query_params_value=self.__ctx_query_params_value,
             kw_dump=self.__kw_dump
@@ -183,11 +177,11 @@ class ResolverRequest:
         return mapping
 
     def send(self) -> Dict:
-        type_ = self.__resolve_send(self.__kw_dump, self.__ctx_sends_type)
+        type_ = _resolve_send(self.__kw_dump, self.__ctx_sends_type)
         return type_
 
     def options(self) -> Dict:
-        opts: Dict = self.__resolve_options(self.__kw_dump)
+        opts: Dict = _resolve_options(self.__kw_dump)
         return opts
 
     @property

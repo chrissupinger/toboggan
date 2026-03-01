@@ -1,5 +1,6 @@
 # Standard
 from pytest import fixture, mark
+from asyncio import gather
 from typing import Dict
 
 # Third-party
@@ -90,3 +91,20 @@ async def test_post_form_url_encoded(fixture_post_form_url_encoded):
     response = fixture_post_form_url_encoded
     assert isinstance(response.get('form'), Dict)
     assert response.get('form') == {'Hello': 'World!'}
+
+@mark.asyncio
+async def test_concurrency(fixture_api):
+    async with fixture_api.session():
+        tasks = (
+            fixture_api.method_get(),
+            fixture_api.method_get_path_params(first_path='hello', second_path='world'),
+            fixture_api.method_post_json(body={'Hello': 'World!'}),
+            fixture_api.method_post_form_url_encoded(body={'Hello': 'World!'}),
+        )
+        responses = await gather(*tasks)
+        assert isinstance(responses[0], Dict)
+        assert responses[1].get('url') == 'http://httpbin.org/anything/hello/world'
+        assert isinstance(responses[2].get('json'), Dict)
+        assert responses[2].get('json') == {'Hello': 'World!'}
+        assert isinstance(responses[3].get('form'), Dict)
+        assert responses[3].get('form') == {'Hello': 'World!'}

@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Any, Optional, Union
 
+# Third-party
 from requests import Session
 
 # Local
@@ -51,7 +52,7 @@ class Connector(metaclass=MetaclassConnector):
             self.client = client
         return self
 
-    def session(self):
+    def session(self) -> Any:
         return self.client
 
     @property

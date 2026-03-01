@@ -4,7 +4,7 @@ from aiohttp import ClientSession
 from requests import Session
 
 # Local
-from toboggan import Connector
+from toboggan import Connector, headers, params
 from toboggan.aliases import AliasSessionType
 
 @fixture
@@ -37,3 +37,22 @@ async def test_base_url_aiohttp(connector_aiohttp):
 @mark.asyncio
 async def test_client_type_alias_aiohttp(connector_aiohttp):
     assert connector_aiohttp.client_type is AliasSessionType.AIOHTTP
+
+
+@params({'limit': 10})
+@headers({'User-Agent': 'toboggan'})
+class HttpBin(Connector):
+
+    def __init__(self, base_url: str = 'http://httpbin.org/') -> None:
+        super().__init__(base_url=base_url)
+
+
+@fixture
+def fixture_api():
+    return HttpBin()
+
+def test_base_headers(fixture_api):
+    assert fixture_api.base_headers == {'User-Agent': 'toboggan'}
+
+def test_base_query_params(fixture_api):
+    assert fixture_api.base_query_params == {'limit': 10}
