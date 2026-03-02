@@ -60,9 +60,7 @@ class Verb:
             )
             if conn.client_type is AliasSessionType.AIOHTTP:
                 return aiohttp_.request(**settings._asdict())
-            elif conn.client_type is AliasSessionType.REQUESTS:
-                return requests_.request(**settings._asdict())
-            raise RuntimeError('...')
+            return requests_.request(**settings._asdict())
         return wrapper
 
     class _Signature:

@@ -1,11 +1,15 @@
 # toboggan
 
-Inspired by [prkumar's](https://github.com/prkumar) work on [Uplink](https://github.com/prkumar/uplink).
+Inspired by [prkumar's](https://github.com/prkumar) work on 
+[Uplink](https://github.com/prkumar/uplink).
 
-toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).
+toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's 
+support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).  It 
+acts under a _bring your own client_ model. 
 
 ## Table of contents
 
+- [Installation](#installation)
 - [Connector](#connector)
 - [Client](#client)
 - [Decorators](#decorators)
@@ -19,10 +23,25 @@ toboggan wraps the popular [Requests](https://github.com/psf/requests) library. 
   - [Blocking](#blocking-w-httpbin)
   - [Nonblocking](#nonblocking-w-pokéapi)
 
+### Installation
+
+Recommended installation that fits most use cases:
+
+```bash
+pip install toboggan
+```
+
+For async support w/ aiohttp:
+
+```bash
+pip install toboggan[aiohttp]
+```
+
 ### Connector
 
-The `Connector` class is the base configuration for creating all API models.  It can grant any instance method access
-to a common client session and a wide array of settings.  Instantiation can be achieved in various ways:
+The `Connector` class is the base configuration for creating all API models.  
+It can grant any instance method access to a common client session and a wide 
+array of settings.  Instantiation can be achieved in various ways:
 
 - Initialization of the inherited superclass in the class's constructor
 
@@ -52,60 +71,35 @@ class Httpbin(Connector):
 httpbin = Httpbin(base_url='https://httpbin.org')
 ```
 
-The `Connector` class is built for reusability.  Even after initial instantiation, the `Connector` can be
-re-instantiated with new `base_url` and `client` arguments.  A use case for this is reusing a model in which both
+The `Connector` class is built for reusability.  Even after initial 
+instantiation, the `Connector` can be re-instantiated with new `base_url` and 
+`client` arguments.  A use case for this is reusing a model in which both 
 blocking and nonblocking behavior is desired from mutual or exclusive paths.
-
-```python
-from toboggan import AiohttpClient, Connector, RequestsClient
-
-
-class Httpbin(Connector):
-    pass
-
-
-api = Httpbin(base_url='https://httpbin.org', client=RequestsClient())
-nonblocking = api(base_url='https://httpbin.org', client=AiohttpClient())
-```
-
-### Client
-
-The default client associated to the `Connector` class is the native `RequestsClient`.  For nonblocking requests, the
-native `AiohttpClient` can be used.  Changing the client type can be achieved through:
-
-- Passing `AiohttpClient` as a constructor argument
-
-```python
-from toboggan import AiohttpClient, Connector
-
-
-class Httpbin(Connector):
-    pass
-
-
-httpbin = Httpbin(base_url='https://httpbin.org', client=AiohttpClient())
-```
-
-- Setting the client via the `session` setter
-
-```python
-from toboggan import AiohttpClient, Connector, RequestsClient
-
-
-class Httpbin(Connector):
-    pass
-
-
-httpbin = Httpbin(base_url='https://httpbin.org', client=AiohttpClient())
-httpbin.session = RequestsClient()
-```
-
-Native client types are derivatives of `aiohttp.ClientSession` and `requests.Session`.  This means these are also
-compatible client types.
 
 ```python
 from aiohttp import ClientSession
 from requests import Session
+from toboggan import AiohttpClient, Connector, RequestsClient
+
+
+class Httpbin(Connector):
+    pass
+
+
+api = Httpbin(base_url='https://httpbin.org', client=Session())
+nonblocking = api(base_url='https://httpbin.org', client=ClientSession())
+```
+
+### Client
+
+The default client associated to the `Connector` class is `requests.Session`.  
+For nonblocking requests, `aiohttp.ClientSession` can be used.  Changing the 
+client type can be achieved through:
+
+- Passing `aiohttp.ClientSession` as a constructor argument
+
+```python
+from aiohttp import ClientSession
 from toboggan import Connector
 
 
@@ -114,7 +108,22 @@ class Httpbin(Connector):
 
 
 httpbin = Httpbin(base_url='https://httpbin.org', client=ClientSession())
-httpbin.session = Session()
+```
+
+- Setting the client via the `Connector.client` setter
+
+```python
+from aiohttp import ClientSession
+from requests import Session
+from toboggan import AiohttpClient, Connector, RequestsClient
+
+
+class Httpbin(Connector):
+    pass
+
+
+httpbin = Httpbin(base_url='https://httpbin.org', client=ClientSession())
+httpbin.client = Session()
 ```
 
 ### Decorators
@@ -123,9 +132,10 @@ Decorators are used to statically describe your API models.
 
 #### Verbs
 
-The verb decorators are foundational for your instance methods to use the `Connector` and should be applied as the first
-decorator in a chain.  A verb decorator is the minimum requirement for instance methods using the `Connector`.  The
-following HTTP verbs are available for use:
+The verb decorators are foundational for your instance methods to use the 
+`Connector` and should be applied as the first decorator in a chain.  A verb 
+decorator is the minimum requirement for instance methods using the 
+`Connector`.  The following HTTP verbs are available for use:
 - `connect`
 - `delete`
 - `get`
@@ -149,9 +159,11 @@ class Httpbin(Connector):
 
 #### headers
 
-The `headers` decorator is versatile and can be employed at both the class-level and its instance methods.  When
-decorating the subclass of the `Connector` class, `headers` will designate global values to be applied to every instance
-method that uses the `Connector`.  When decorating an instance method, those values are exclusive to the method.
+The `headers` decorator is versatile and can be employed at both the 
+class-level and its instance methods.  When decorating the subclass of the 
+`Connector` class, `headers` will designate global values to be applied to 
+every instance method that uses the `Connector`.  When decorating an instance 
+method, those values are exclusive to the method.
 
 ```python
 from toboggan import Connector, get, headers
@@ -162,13 +174,14 @@ class Httpbin(Connector):
 
     @headers({'User-Agent': 'toboggan (python-requests/2.32.3)'})
     @get(path='/get')
-    def get_(self):
+    def get_request(self):
         pass
 ```
 
 #### params
 
-Just like the `headers` decorator, the `params` decorator is versatile.  The `params` decorator requires a mapping
+Just like the `headers` decorator, the `params` decorator is versatile.  The 
+`params` decorator requires a mapping
 
 ```python
 from toboggan import Connector, get, params
@@ -179,15 +192,17 @@ class Httpbin(Connector):
 
     @params({'email': 'johndoe@example.com'})
     @get(path='/get')
-    def get_(self):
+    def get_request(self):
         pass
 ```
 
 #### returns.*
 
-The `returns` object grants access to return types that can be used to preemptively declare an expected return type.
-When the decorated instance method is invoked, the designated return type will be loaded.  If no return type is
-designated, a client agnostic `ResponseObject` is returned.  The following return types are available for use:
+The `returns` object grants access to return types that can be used to 
+preemptively declare an expected return type.  When the decorated instance 
+method is invoked, the designated return type will be loaded.  If no return 
+type is designated, a client respective response object is returned.  The 
+following return types are available for use:
 - `json`
 - `status_code`
 - `text`
@@ -214,9 +229,10 @@ class Httpbin(Connector):
         pass
 ```
 
-The `json` return type is able to take a `key` argument.  This argument allows the method to return a nested key-value
-pair.  If `key` is not set, the entire JSON object is returned from the response.  Both `status_code` and `text` do not
-take arguments.
+The `json` return type is able to take a `key` argument.  This argument allows 
+the method to return a nested key-value pair.  If `key` is not set, the entire 
+JSON object is returned from the response.  Both `status_code` and `text` do 
+not take arguments.
 
 ```python
 from toboggan import Connector, get, returns
@@ -232,9 +248,11 @@ class Httpbin(Connector):
 
 #### sends.*
 
-The `sends` object grants access to data send types that can be used to preemptively declare a data send type.  When the
-decorated instance method is invoked, the designated data send type will be configured for the request.  If no data send
-type is designated, a data send type will be negotiated based on the data type passed to the `Body` of the request.
+The `sends` object grants access to data send types that can be used to 
+preemptively declare a data send type.  When the decorated instance method is 
+invoked, the designated data send type will be configured for the request.  If 
+no data send type is designated, a data send type will be coerced based on 
+the data type passed to the `Body` of the request.
 
 - `form_url_encoded`
 - `json`
@@ -256,22 +274,23 @@ class Httpbin(Connector):
         pass
 ```
 
-The `form_url_encoded` data send type configures a request to send form-encoded data.  The `json` data send type
-configures the request to send JSON-encoded data.  Both `form_url_encoded` and `json` do not take arguments.
+The `form_url_encoded` data send type configures a request to send form-encoded 
+data.  The `json` data send type configures the request to send JSON-encoded 
+data.  Both `form_url_encoded` and `json` do not take arguments.
 
 ### Annotations
 
-Annotations are used to designate dynamic values that your models will consume.  These are employed as type hints for
-instance method arguments.  The following annotations are available for use:
+Annotations are used to designate dynamic values that your models will consume.  
+These are employed as type hints for instance method arguments.  The following 
+annotations are available for use:
 - `Body`
+- `Options`
 - `Path`
 - `Query`
 - `QueryKebab`
-- `QueryMap`
-- `QueryMapKebab`
 
 ```python
-from toboggan import Body, Connector, Path, Query, QueryMap, get, post
+from toboggan import Body, Connector, Path, Query, QueryKebab, get, post
 
 
 class Httpbin(Connector):
@@ -285,18 +304,23 @@ class Httpbin(Connector):
         pass
     
     @get(path='/get')
-    def get_w_query_params(self, limit: Query, **identifiers: QueryMap):
+    def get_w_query_params(self, limit: Query, page_size: QueryKebab):
+        pass
+
+    @get(path='/get')
+    def get_w_options(self, **options: Options):
         pass
 ```
 
-The `Body` type annotates the body of the request.  The `Path` type annotates a request path parameter.  The `Query`
-type annotates a request query parameter.  The `QueryMap` annotates a mapping of request query parameters.  A single
-method can only have one `Body` and `QueryMap` annotation and an unlimited number of `Path` and `Query` annotations.
+The `Body` type annotates the body of the request.  The `Path` type annotates a 
+request path parameter.  The `Query` type annotates a request query parameter.  
+A single method can only have one `Body` annotation and an unlimited number of 
+`Path` and `Query` annotations.
 
-The `QueryKebab` and `QueryMapKebab` types are derivatives of the `Query` and `QueryMap` types (respectfully).  These 
-are used for APIs that still employ kebab casing for their query parameters.  When assigned these types, parameters 
-should be delimited by an underscore (`_`) or, in other words, snake cased.  This annotation negotiates snake case to 
-kebab case.
+The `QueryKebab` type is a derivative of the `Query` type.  This is used for 
+APIs that still employ kebab casing for their query parameters.  When assigned 
+these types, parameters should be delimited by an underscore (`_`) or, in other 
+words, snake cased.  This annotation coerces snake case to kebab case.
 
 ```python
 from toboggan import Connector, QueryKebab, QueryMapKebab, get
@@ -305,12 +329,19 @@ from toboggan import Connector, QueryKebab, QueryMapKebab, get
 class Httpbin(Connector):
     
     @get(path='/get')
-    def get_w_query_params(self, employee_id: QueryKebab, **identifiers: QueryMapKebab):
+    def get_w_query_params(
+        self,
+        employee_id: QueryKebab,
+        first_name: QueryKebab,
+        last_name: QueryKebab
+    ):
         pass
 
 
 httpbin = Httpbin(base_url='https://httpbin.org')
-response = httpbin.get_w_query_params(employee_id='a3f5c7d', first_name='John', last_name='Doe')
+response = httpbin.get_w_query_params(
+    employee_id='a3f5c7d', first_name='John', last_name='Doe'
+)
 ```
 
 ### Usage
@@ -318,16 +349,15 @@ response = httpbin.get_w_query_params(employee_id='a3f5c7d', first_name='John', 
 #### Blocking w/ [httpbin](https://github.com/postmanlabs/httpbin)
 
 ```python
-from json import dumps
-from toboggan import Body, Connector, ResponseObject, get, headers, post
+from toboggan import Body, Connector, get, headers, post
 
 
 @headers({'Content-Type': 'application/json'})
 class Httpbin(Connector):
     """A httpbin mapping.
 
-    This example and mapping is facilitated with the Docker image.  To run it
-    locally, see usage below.
+    This example and mapping is facilitated with the Docker image.  To 
+    run it locally, see usage below.
 
     If wanting to use the hosted httpbin service, set the `base_url` to
     https://httpbin.org.
@@ -343,12 +373,12 @@ class Httpbin(Connector):
     """
 
     @get(path='/get')
-    def get_(self) -> ResponseObject:
+    def get_request(self):
         """The request's query parameters.
         """
 
     @post(path='/post')
-    def post_(self, body: Body) -> ResponseObject:
+    def post_request(self, body: Body):
         """The request's POST parameters.
         """
 
@@ -356,8 +386,7 @@ class Httpbin(Connector):
 if __name__ == '__main__':
     httpbin = Httpbin(base_url='http://0.0.0.0')
 
-    response = httpbin.get_()
-    print(dumps(response.json(), indent=4, default=str))
+    response = httpbin.get_request()
 
     request_body = {
         "user_id": 12345,
@@ -370,16 +399,15 @@ if __name__ == '__main__':
             "city": "New York"
         }
     }
-    response = httpbin.post_(body=request_body)
-    print(dumps(response.json(), indent=4, default=str))
+    response = httpbin.post_request(body=request_body)
 ```
 
 #### Nonblocking w/ [PokéAPI](https://pokeapi.co/)
 
 ```python
 import asyncio
-from typing import Dict
-from toboggan import AiohttpClient, Connector, Path, get, headers, returns
+from aiohttp import ClientSession
+from toboggan import Connector, Path, get, headers, returns
 
 
 @headers({'Content-Type': 'application/json'})
@@ -390,14 +418,11 @@ class PokeApi(Connector):
         - `PokéAPI <https://pokeapi.co>`_
     """
 
-    def __init__(self):
-        super().__init__(base_url='https://pokeapi.co/api/v2', client=AiohttpClient())
-
     @returns.json(key=('species', 'name',))
-    @get(path='/pokemon/{no}')
-    def pokemon(self, no: Path) -> Dict:
-        """Retrieve Pokémon metadata.  Traverse the nested dictionary returned
-        and get the `name` value.
+    @get('pokemon/{no}')
+    def get_pokemon(self, no: Path) -> str:
+        """Retrieve Pokémon metadata.  Traverse the nested dictionary 
+        returned and get the `name` value.
 
         References:
             - `Pokémon (endpoint) <https://pokeapi.co/docs/v2#pokemon>`_
@@ -406,26 +431,19 @@ class PokeApi(Connector):
 
 if __name__ == '__main__':
     # Utilizing `asyncio.run` for Python 3.7 and above.
-    async def get_pokemon(no):
-        api = PokeApi()
-        async with api.session:
-            return await api.pokemon(no=no)
+    async def poke_api_async(range_):
+        poke_api = PokeApi(
+            base_url='https://pokeapi.co/api/v2/', client=ClientSession()
+        )
+        async with poke_api.session():
+            tasks = [poke_api.get_pokemon(no=no) for no in range_]
+            responses = await gather(*tasks)
+            return responses
 
-    response = asyncio.run(get_pokemon(no=1))
-    print(response)
-
-    async def get_many_pokemon(range_):
-        api = PokeApi()
-        async with api.session:
-            tasks = await asyncio.gather(*[api.pokemon(no=no) for no in range_])
-            return tasks
-
-    responses = asyncio.run(get_many_pokemon(range_=range(1, 152)))
-    print(responses)
+    responses = asyncio.run(poke_api_async(range_=range(1, 152)))
 
     # For < 3.7, use an event loop.
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    responses = loop.run_until_complete(get_many_pokemon(range_=range(1, 152)))
-    print(responses)
+    responses = loop.run_until_complete(poke_api_async(range_=range(1, 152)))
 ```

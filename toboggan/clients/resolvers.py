@@ -8,9 +8,11 @@ from requests import Session
 from toboggan.aliases import AliasReturnType, AliasSendsType, AliasSessionType
 from toboggan.annotations import Body, Options, Path, Query, QueryKebab
 from toboggan.models import (
+    TypeModuleErrDump,
     TypeHeadersDump,
     TypeKwDump,
-    TypeNestedDump,
+    TypeNestedKeyErrDump,
+    TypeNestedTypeErrDump,
     TypeQueryParams,
     TypeRequestSettings,
     TypeSendDataDump,
@@ -21,7 +23,7 @@ __all__ = (
     '_get_nested', '_merge_mappings', 'ResolverRequest', 'resolve_client_type',
 )
 
-def resolve_client_type(session: Any) -> Union[AliasSessionType, None]:
+def resolve_client_type(session: Any) -> Optional[AliasSessionType]:
     if isinstance(session, Session):
         return AliasSessionType.REQUESTS
     try:
@@ -29,13 +31,8 @@ def resolve_client_type(session: Any) -> Union[AliasSessionType, None]:
         if isinstance(session, ClientSession):
             return AliasSessionType.AIOHTTP
     except ModuleNotFoundError:
-        raise ModuleNotFoundError(
-             '\ntoboggan requires aiohttp for async support.  This can be ' \
-             'installed with one of the following:' \
-             '\n- pip install toboggan[aiohttp]' \
-             '\n- pip install toboggan[all]' \
-             '\n- pip install aiohttp>=3.8.0'
-        )
+        err = TypeModuleErrDump()
+        raise ModuleNotFoundError(err)
 
 def _get_nested(
         json: Optional[Dict],
@@ -47,11 +44,18 @@ def _get_nested(
         for key in keys:
             try:
                 json = json[key]
-            except (KeyError, TypeError,):
-                return TypeNestedDump(
+            except TypeError:
+                 err = TypeNestedTypeErrDump(
+                    type_expected=dict,
+                    type_found=type(json)
+                 )
+                 raise TypeError(err)
+            except KeyError:
+                err = TypeNestedKeyErrDump(
                     sequence_expected=list(value),
                     sequence_found=list(orig.keys())
-                )._asdict()
+                )
+                raise KeyError(err)
     return json
 
 def _merge_mappings(
