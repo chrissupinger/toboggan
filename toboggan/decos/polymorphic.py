@@ -1,6 +1,7 @@
 # Standard
 from functools import wraps
 from inspect import isclass
+from typing import Callable, Dict, Union
 
 # Local
 from .contexts import _ctx_headers_value, _ctx_query_params_value
@@ -13,16 +14,16 @@ __all__ = ('headers', 'params',)
 class Polymorphic:
     __slots__ = ('__context', '__value',)
 
-    def __init__(self, context, value):
+    def __init__(self, context: AliasReqOptType, value: Dict):
         self.__context = context
         self.__value = value
 
-    def __call__(self, callable_, **kwargs):
+    def __call__(self, callable_, **kwargs) -> Union[type[Connector], Callable]:
         if isclass(callable_):
             return self._for_class(callable_)
         return self._for_func(callable_)
 
-    def _for_class(self, cls):
+    def _for_class(self, cls: type[Connector]) -> type[Connector]:
         orig_init = cls.__init__
 
         @wraps(orig_init)
@@ -36,7 +37,7 @@ class Polymorphic:
             cls.base_query_params.update(self.__value)
         return cls
 
-    def _for_func(self, func):
+    def _for_func(self, func: Callable) -> Callable:
 
         @wraps(func)
         def wrapper(*args: Connector, **kwargs):
@@ -60,13 +61,13 @@ class Polymorphic:
 
 class Headers(Polymorphic):
 
-    def __init__(self, value):
+    def __init__(self, value: Dict):
         super().__init__(AliasReqOptType.HEADERS, value)
 
 
 class Params(Polymorphic):
 
-    def __init__(self, value):
+    def __init__(self, value: Dict):
         super().__init__(AliasReqOptType.QUERY, value)
 
 

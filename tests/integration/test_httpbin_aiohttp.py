@@ -1,9 +1,9 @@
 # Standard
-from pytest import fixture, mark
 from asyncio import gather
 from typing import Dict
 
 # Third-party
+from pytest import fixture, mark
 from aiohttp import ClientSession
 
 # Local

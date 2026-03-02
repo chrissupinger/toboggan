@@ -31,8 +31,8 @@ aiohttp = [
 ]
 
 all = [
-    "requests (>=2.25.0)",
-    "aiohttp[speedups] (>=3.8.0)"
+    "aiohttp[speedups] (>=3.8.0)",
+    "requests (>=2.25.0)"
 ]
 
 [tool.poetry]

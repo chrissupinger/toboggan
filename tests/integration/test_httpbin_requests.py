@@ -1,6 +1,8 @@
 # Standard
-from pytest import fixture
 from typing import Dict
+
+# Third-party
+from pytest import fixture
 
 # Local
 from toboggan import Body, Connector, Path, get, post, sends

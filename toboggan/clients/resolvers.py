@@ -21,7 +21,7 @@ __all__ = (
     '_get_nested', '_merge_mappings', 'ResolverRequest', 'resolve_client_type',
 )
 
-def resolve_client_type(session: Any) -> AliasSessionType:
+def resolve_client_type(session: Any) -> Union[AliasSessionType, None]:
     if isinstance(session, Session):
         return AliasSessionType.REQUESTS
     try:
@@ -29,8 +29,13 @@ def resolve_client_type(session: Any) -> AliasSessionType:
         if isinstance(session, ClientSession):
             return AliasSessionType.AIOHTTP
     except ModuleNotFoundError:
-        raise ModuleNotFoundError()
-    return AliasSessionType.NONE
+        raise ModuleNotFoundError(
+             '\ntoboggan requires aiohttp for async support.  This can be ' \
+             'installed with one of the following:' \
+             '\n- pip install toboggan[aiohttp]' \
+             '\n- pip install toboggan[all]' \
+             '\n- pip install aiohttp>=3.8.0'
+        )
 
 def _get_nested(
         json: Optional[Dict],
