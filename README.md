@@ -15,9 +15,9 @@ support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aioh
   - [Verbs](#verbs)
   - [headers](#headers)
   - [params](#params)
+  - [retry](#retry)
   - [returns.*](#returns)
   - [sends.*](#sends)
-  - [retry](#retry)
 - [Annotations](#annotations)
 - [Usage](#usage)
   - [Blocking](#blocking-w-httpbin)
@@ -92,9 +92,9 @@ nonblocking = api(base_url='https://httpbin.org', client=ClientSession())
 
 ### Client
 
-The default client associated to the `Connector` class is `requests.Session`.  
-For nonblocking requests, `aiohttp.ClientSession` can be used.  Changing the 
-client type can be achieved through:
+The default client associated to the `Connector` class is `requests.Session`.  For 
+nonblocking requests, `aiohttp.ClientSession` can be used.  Changing the client 
+type can be achieved through:
 
 - Passing `aiohttp.ClientSession` as a constructor argument
 
@@ -197,6 +197,24 @@ class Httpbin(Connector):
         pass
 ```
 
+#### retry
+
+The `retry` deocorator sets a retry strategy for requests.  This allows for 
+setting a retry count (`total`), an exponential time between retries 
+(`backoff_factor`) and conditions for a retry to occur (`status_forcelist`).
+
+```python
+from toboggan import Connector, get, retry
+
+
+class Httpbin(Connector):
+
+    @retry(total=10, backoff_factor=0.1, status_forcelist=[429, 500, 502, 503, 504])
+    @get(path='/get')
+    def get_json(self):
+        pass
+```
+
 #### returns.*
 
 The `returns` decorator grants access to return types that can be used to 
@@ -280,24 +298,6 @@ The `form_url_encoded` data send type configures a request to send form-encoded
 data.  The `json` data send type configures the request to send JSON-encoded 
 data.  Both `form_url_encoded` and `json` do not take arguments.
 
-#### retry
-
-The `retry` deocorator sets a retry strategy for requests.  This allows for 
-setting a retry count (`total`), an exponential time between retries 
-(`backoff_factor`) and conditions for a retry to occur (`status_forcelist`).
-
-```python
-from toboggan import Connector, get, retry
-
-
-class Httpbin(Connector):
-
-    @retry(total=10, backoff_factor=0.1, status_forcelist=[429, 500, 502, 503, 504])
-    @get(path='/get')
-    def get_json(self):
-        pass
-```
-
 ### Annotations
 
 Annotations are used to designate dynamic values that your models will consume.  These 
@@ -338,32 +338,16 @@ request path parameter.  The `Query` type annotates a request query parameter.  
 single method can only have one `Body` annotation and an unlimited number of 
 `Path` and `Query` annotations.
 
-The `QueryKebab` type is a derivative of the `Query` type.  This is used for 
+The `QueryKebab` type is an extenstion of the `Query` type.  This is used for 
 APIs that still employ kebab casing for their query parameters.  When assigned 
 these types, parameters should be delimited by an underscore (`_`) or, in other 
 words, snake cased.  This annotation coerces snake case to kebab case.
 
-```python
-from toboggan import Connector, QueryKebab, QueryMapKebab, get
-
-
-class Httpbin(Connector):
-    
-    @get(path='/get')
-    def get_w_query_params(
-        self,
-        employee_id: QueryKebab,
-        first_name: QueryKebab,
-        last_name: QueryKebab
-    ):
-        pass
-
-
-httpbin = Httpbin(base_url='https://httpbin.org')
-response = httpbin.get_w_query_params(
-    employee_id='a3f5c7d', first_name='John', last_name='Doe'
-)
-```
+The `Options` type allows arbitrary keyword arguments to be declared for a 
+method.  When using the `Options` annotation, arguments should reflect a client 
+type's request keyword arguments.  For `Requests`, 
+see: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request).  For
+`aiohttp`, see: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request).
 
 ### Usage
 
