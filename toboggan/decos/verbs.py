@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, get_type_hints
 from .contexts import (
     _ctx_headers_value,
     _ctx_query_params_value,
+    _ctx_retry_value,
     _ctx_returns_type,
     _ctx_returns_json_value,
     _ctx_sends_type,
@@ -52,6 +53,7 @@ class Verb:
                 ctx_headers_value=_ctx_headers_value.get(),
                 ctx_query_params_value=_ctx_query_params_value.get(),
                 ctx_sends_type=_ctx_sends_type.get(),
+                ctx_retry_value=_ctx_retry_value.get(),
                 ctx_returns_type=_ctx_returns_type.get(),
                 ctx_returns_json_key=_ctx_returns_json_value.get(),
             )

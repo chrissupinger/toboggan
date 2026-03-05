@@ -4,8 +4,7 @@ Inspired by [prkumar's](https://github.com/prkumar) work on
 [Uplink](https://github.com/prkumar/uplink).
 
 toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's 
-support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).  It 
-acts under a _bring your own client_ model. 
+support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).
 
 ## Table of contents
 
@@ -18,6 +17,7 @@ acts under a _bring your own client_ model.
   - [params](#params)
   - [returns.*](#returns)
   - [sends.*](#sends)
+  - [retry](#retry)
 - [Annotations](#annotations)
 - [Usage](#usage)
   - [Blocking](#blocking-w-httpbin)
@@ -39,8 +39,8 @@ pip install toboggan[aiohttp]
 
 ### Connector
 
-The `Connector` class is the base configuration for creating all API models.  
-It can grant any instance method access to a common client session and a wide 
+The `Connector` class is the base configuration for creating all API models.  It 
+can grant any instance method access to a common client session and a wide 
 array of settings.  Instantiation can be achieved in various ways:
 
 - Initialization of the inherited superclass in the class's constructor
@@ -136,6 +136,7 @@ The verb decorators are foundational for your instance methods to use the
 `Connector` and should be applied as the first decorator in a chain.  A verb 
 decorator is the minimum requirement for instance methods using the 
 `Connector`.  The following HTTP verbs are available for use:
+
 - `connect`
 - `delete`
 - `get`
@@ -198,11 +199,12 @@ class Httpbin(Connector):
 
 #### returns.*
 
-The `returns` object grants access to return types that can be used to 
+The `returns` decorator grants access to return types that can be used to 
 preemptively declare an expected return type.  When the decorated instance 
 method is invoked, the designated return type will be loaded.  If no return 
 type is designated, a client respective response object is returned.  The 
 following return types are available for use:
+
 - `json`
 - `status_code`
 - `text`
@@ -243,12 +245,12 @@ class Httpbin(Connector):
     @returns.json(key='json')
     @get(path='/get')
     def get_json(self):
-      pass
+        pass
 ```
 
 #### sends.*
 
-The `sends` object grants access to data send types that can be used to 
+The `sends` decorator grants access to data send types that can be used to 
 preemptively declare a data send type.  When the decorated instance method is 
 invoked, the designated data send type will be configured for the request.  If 
 no data send type is designated, a data send type will be coerced based on 
@@ -278,11 +280,30 @@ The `form_url_encoded` data send type configures a request to send form-encoded
 data.  The `json` data send type configures the request to send JSON-encoded 
 data.  Both `form_url_encoded` and `json` do not take arguments.
 
+#### retry
+
+The `retry` deocorator sets a retry strategy for requests.  This allows for 
+setting a retry count (`total`), an exponential time between retries 
+(`backoff_factor`) and conditions for a retry to occur (`status_forcelist`).
+
+```python
+from toboggan import Connector, get, retry
+
+
+class Httpbin(Connector):
+
+    @retry(total=10, backoff_factor=0.1, status_forcelist=[429, 500, 502, 503, 504])
+    @get(path='/get')
+    def get_json(self):
+        pass
+```
+
 ### Annotations
 
-Annotations are used to designate dynamic values that your models will consume.  
-These are employed as type hints for instance method arguments.  The following 
+Annotations are used to designate dynamic values that your models will consume.  These 
+are employed as type hints for instance method arguments.  The following 
 annotations are available for use:
+
 - `Body`
 - `Options`
 - `Path`
@@ -313,8 +334,8 @@ class Httpbin(Connector):
 ```
 
 The `Body` type annotates the body of the request.  The `Path` type annotates a 
-request path parameter.  The `Query` type annotates a request query parameter.  
-A single method can only have one `Body` annotation and an unlimited number of 
+request path parameter.  The `Query` type annotates a request query parameter.  A 
+single method can only have one `Body` annotation and an unlimited number of 
 `Path` and `Query` annotations.
 
 The `QueryKebab` type is a derivative of the `Query` type.  This is used for 

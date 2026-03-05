@@ -11,8 +11,9 @@ __all__ = (
     'TypeKwObjDump',
     'TypeNestedKeyErrDump',
     'TypeNestedTypeErrDump',
-    'TypeQueryParams',
-    'TypeRequestSettings',
+    'TypeQueryParamsDump',
+    'TypeRequestSettingsDump',
+    'TypeRetryErrDump',
     'TypeSendDataDump',
     'TypeSendJsonDump',
 )
@@ -29,6 +30,37 @@ class TypeKwObjDump(NamedTuple):
 
 class TypeKwDump(NamedTuple):
     dump: Dict = {}
+
+
+class TypeQueryParamsDump(NamedTuple):
+    params: Dict
+
+
+class TypeRetryDump(NamedTuple):
+    total: int
+    backoff_factor: float
+    status_forcelist: list[int]
+
+
+class TypeRequestSettingsDump(NamedTuple):
+    session: object
+    method: str
+    url: str
+    headers: Dict
+    query_params: Dict
+    send: Union[Dict, str]
+    options: Dict
+    retry: Optional[TypeRetryDump]
+    returns_type: Optional[AliasReturnType]
+    returns_json_key: Union[None, str, list[str], tuple[str]]
+
+
+class TypeSendDataDump(NamedTuple):
+    data: Union[Dict, str]
+
+
+class TypeSendJsonDump(NamedTuple):
+    json: Union[Dict, str]
 
 
 class TypeModuleErrDump(NamedTuple):
@@ -65,25 +97,11 @@ class TypeNestedKeyErrDump(NamedTuple):
     'order.'
 
 
-class TypeQueryParams(NamedTuple):
-    params: Dict
-
-
-class TypeRequestSettings(NamedTuple):
-    session: object
-    method: str
-    url: str
-    headers: Dict
-    query_params: Dict
-    send: Union[Dict, str]
-    options: Dict
-    returns_type: Optional[AliasReturnType]
-    returns_json_key: Union[None, str, list[str], tuple[str]]
-
-
-class TypeSendDataDump(NamedTuple):
-    data: Union[Dict, str]
-
-
-class TypeSendJsonDump(NamedTuple):
-    json: Union[Dict, str]
+class TypeRetryErrDump(NamedTuple):
+    status_code: int
+    config: TypeRetryDump
+    err_message: str = 'This error occurs when a request fails after ' \
+    'exhausting all retry attempts.'
+    solution_message: str = 'Consider increasing the number of retry ' \
+    'attempts or adjusting the backoff factor to allow for more time ' \
+    'between retry attempts.'

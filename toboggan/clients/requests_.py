@@ -1,4 +1,5 @@
 # Standard
+from time import sleep
 from typing import Dict, List, Optional, Tuple, Union
 
 # Third-party
@@ -7,6 +8,7 @@ from requests import Response, Session
 # Local
 from .resolvers import _get_nested, _merge_mappings
 from toboggan.aliases import AliasReturnType
+from toboggan.models import TypeRetryDump, TypeRetryErrDump
 
 class ConfigRequests:
     __slots__ = ()
@@ -38,6 +40,7 @@ class ConfigRequests:
             query_params: Dict,
             send: Dict,
             options: Dict,
+            retry: Optional[TypeRetryDump] = None,
             returns_type: Optional[AliasReturnType] = None,
             returns_json_key: Optional[Union[str, List[str], Tuple[str]]] = None,
             **kwargs
@@ -45,7 +48,7 @@ class ConfigRequests:
         _merge_mappings(base=headers, supp=options, target='headers')
         _merge_mappings(base=query_params, supp=options, target='params')
         with session:
-            response = session.request(
+            staged_request = lambda: session.request(
                 method=method,
                 url=url,
                 **options,
@@ -54,12 +57,24 @@ class ConfigRequests:
                 **query_params,
                 **kwargs
             )
-        response = self._resolve_response(
+            response = staged_request()
+            if retry and response.status_code in retry.status_forcelist:
+                for attempt in range(retry.total):
+                    backoff = retry.backoff_factor * (2 ** attempt)
+                    sleep(backoff)
+                    if attempt == retry.total - 1:
+                        err = TypeRetryErrDump(
+                            status_code=response.status_code,
+                            config=retry
+                        )
+                        raise RuntimeError(err)
+                    response = staged_request()
+        resolved_response = self._resolve_response(
             response=response,
             ctx_returns_type=returns_type,
             ctx_returns_json_key=returns_json_key
         )
-        return response
+        return resolved_response
 
 
 requests_ = ConfigRequests()

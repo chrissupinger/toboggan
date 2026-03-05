@@ -9,6 +9,7 @@ __all__ = (
 class AliasReqOptType(Enum):
     HEADERS = auto()
     QUERY = auto()
+    RETRY = auto()
 
 
 class AliasReturnType(Enum):

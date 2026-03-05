@@ -1,4 +1,4 @@
-from .monomorphic import returns, sends
+from .monomorphic import retry, returns, sends
 from .polymorphic import headers, params
 from .verbs import (
     connect,

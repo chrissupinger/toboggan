@@ -13,8 +13,9 @@ from toboggan.models import (
     TypeKwDump,
     TypeNestedKeyErrDump,
     TypeNestedTypeErrDump,
-    TypeQueryParams,
-    TypeRequestSettings,
+    TypeQueryParamsDump,
+    TypeRequestSettingsDump,
+    TypeRetryDump,
     TypeSendDataDump,
     TypeSendJsonDump,
 )
@@ -122,7 +123,7 @@ def _resolve_query_params(
             elif val.sig_type is QueryKebab and val.kw_value:
                 base[_kebabize(key)] = val.kw_value
         if base:
-            return TypeQueryParams(base)._asdict()
+            return TypeQueryParamsDump(base)._asdict()
         return base
 
 
@@ -134,6 +135,7 @@ class ResolverRequest:
         '__ctx_headers_value',
         '__ctx_query_params_value',
         '__ctx_sends_type',
+        '__ctx_retry_value',
         '__ctx_returns_type',
         '__ctx_returns_json_key',
         '__kw_dump',
@@ -150,6 +152,7 @@ class ResolverRequest:
             ctx_headers_value: Dict,
             ctx_query_params_value: Dict,
             ctx_sends_type: AliasSendsType,
+            ctx_retry_value: Optional[TypeRetryDump] = None,
             ctx_returns_type: Optional[AliasReturnType] = None,
             ctx_returns_json_key: Optional[
                 Union[str, List[str], Tuple[str]]
@@ -160,6 +163,7 @@ class ResolverRequest:
         self.__base_headers = base_headers
         self.__base_query_params = base_query_params
         self.__kw_dump = kw_dump
+        self.__ctx_retry_value = ctx_retry_value
         self.__ctx_headers_value = ctx_headers_value
         self.__ctx_query_params_value = ctx_query_params_value
         self.__ctx_sends_type = ctx_sends_type
@@ -192,6 +196,10 @@ class ResolverRequest:
     def options(self) -> Dict:
         opts: Dict = _resolve_options(self.__kw_dump)
         return opts
+    
+    @property
+    def retry(self) -> Optional[TypeRetryDump]:
+        return self.__ctx_retry_value
 
     @property
     def returns_type(self) -> Optional[AliasReturnType]:
@@ -203,8 +211,8 @@ class ResolverRequest:
 
     def settings_dump(
             self, session: Session, method: str
-        ) -> TypeRequestSettings:
-        return TypeRequestSettings(
+        ) -> TypeRequestSettingsDump:
+        return TypeRequestSettingsDump(
             session=session,
             method=method,
             url=self.url(),
@@ -212,6 +220,7 @@ class ResolverRequest:
             query_params=self.query_params(),
             send=self.send(),
             options=self.options(),
+            retry=self.retry,
             returns_type=self.returns_type,
             returns_json_key=self.returns_json_key
         )

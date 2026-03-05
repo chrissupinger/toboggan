@@ -1,23 +1,41 @@
 # Standard
 from functools import wraps
-from typing import Callable, Optional, Union
+from typing import Callable, List, Optional, Set, Tuple, Union
 
 # Local
 from .contexts import (
-    _ctx_returns_type, _ctx_returns_json_value, _ctx_sends_type,
+   _ctx_retry_value,
+   _ctx_returns_type,
+   _ctx_returns_json_value,
+   _ctx_sends_type,
 )
-from toboggan.aliases import AliasReturnType, AliasSendsType
+from toboggan.aliases import AliasReqOptType, AliasReturnType, AliasSendsType
 from toboggan.connector import Connector
+from toboggan.models import TypeRetryDump
+
+
+__all__ = ('retry', 'returns', 'sends',)
 
 
 class _Context:
-    __slots__ = ('__context', '__key',)
+    __slots__ = (
+        '__context',
+        '__key',
+        '__total',
+        '__backoff_factor',
+        '__status_forcelist',
+    )
 
     def __init__(
-            self, context: Union[AliasReturnType, AliasSendsType], **kwargs
+            self,
+            context: Union[AliasReqOptType, AliasReturnType, AliasSendsType],
+            **kwargs
     ) -> None:
         self.__context = context
         self.__key = kwargs.get('key')
+        self.__total = kwargs.get('total')
+        self.__backoff_factor = kwargs.get('backoff_factor')
+        self.__status_forcelist = kwargs.get('status_forcelist')
 
     def __call__(self, func: Callable, **kwargs) -> Callable:
 
@@ -31,7 +49,21 @@ class _Context:
                 return self._wrapper_returns(func, *args, **kwargs)
             elif self.__context in (AliasSendsType.DATA, AliasSendsType.JSON,):
                 return self._wrapper_sends(func, *args, **kwargs)
+            elif self.__context is AliasReqOptType.RETRY:
+                return self._wrapper_retry(func, *args, **kwargs)
         return wrapper
+    
+    def _wrapper_retry(self, func: Callable, *args: Connector, **kwargs):
+        retry = TypeRetryDump(
+            total=self.__total,
+            backoff_factor=self.__backoff_factor,
+            status_forcelist=self.__status_forcelist
+        )
+        ctx_retry_value = _ctx_retry_value.set(retry)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            _ctx_retry_value.reset(ctx_retry_value)
 
     def _wrapper_returns(self, func: Callable, *args: Connector, **kwargs):
         ctx_returns_type = _ctx_returns_type.set(self.__context)
@@ -49,6 +81,23 @@ class _Context:
             return func(*args, **kwargs)
         finally:
             _ctx_sends_type.reset(ctx_sends_type)
+
+
+class Retry(_Context):
+    __slots__ = ()
+
+    def __init__(
+            self,
+            total: int,
+            backoff_factor: float,
+            status_forcelist: Union[List[int], Tuple[int], Set[int]]
+    ) -> None:
+        super().__init__(
+            context=AliasReqOptType.RETRY,
+            total=total,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist
+        )
 
 
 class Returns:
@@ -154,3 +203,4 @@ sends = Sends()
 """Provides access to decorators that allow a method to default to 
 sending form-encoded data or JSON.  Declaring a subsequent send type 
 will overwrite a previous declared send type."""
+retry = Retry

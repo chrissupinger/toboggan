@@ -11,7 +11,7 @@ from .decos import (
     trace,
 )
 """Verbs"""
-from .decos import headers, params, returns, sends
+from .decos import headers, params, retry, returns, sends
 """Request and response"""
 from .annotations import Body, Options, Path, Query, QueryKebab
 """Annotations"""
