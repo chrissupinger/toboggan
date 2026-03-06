@@ -27,9 +27,7 @@ _ctx_retry_value: ContextVar[Optional[TypeRetryDump]] = ContextVar(
 _ctx_returns_type: ContextVar[Optional[AliasReturnType]] = ContextVar(
     '_ctx_returns_type', default=None
 )
-_ctx_returns_json_value: ContextVar[
-    Optional[Union[str, List[str], Tuple[str]]]
-] = ContextVar(
+_ctx_returns_json_value: ContextVar[Optional[Union[str, List[str], Tuple[str]]]] = ContextVar(
     '_ctx_returns_json_value', default=None
 )
 _ctx_sends_type: ContextVar[Optional[AliasSendsType]] = ContextVar(

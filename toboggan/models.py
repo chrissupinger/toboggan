@@ -13,6 +13,7 @@ __all__ = (
     'TypeNestedTypeErrDump',
     'TypeQueryParamsDump',
     'TypeRequestSettingsDump',
+    'TypeRetryDump',
     'TypeRetryErrDump',
     'TypeSendDataDump',
     'TypeSendJsonDump',
@@ -65,15 +66,19 @@ class TypeSendJsonDump(NamedTuple):
 
 class TypeModuleErrDump(NamedTuple):
     base_dependencies: List[str] = ['requests>=2.25.0']
-    optional_dependencies: List[str] = ['aiohttp[speedups]>=3.7.0']
+    optional_dependencies: List[str] = [
+        'aiohttp[speedups]>=3.7.0', 'httpx>=0.16.0'
+    ]
     err_message: str = 'This error occurs when attempting to use an ' \
     'unsupported client type or when a supported client type has not been ' \
     'installed.'
     solution_message: List[str] = [
         'pip install toboggan[aiohttp]', 'OR',
+        'pip install toboggan[httpx]', 'OR',
         'pip install toboggan[all]', 'OR',
-        'pip install aiohttp[speedups]>=3.7.0', 'OR'
-        'pip install aiohttp>=3.7.0'
+        'pip install aiohttp[speedups]>=3.7.0', 'OR',
+        'pip install aiohttp>=3.7.0', 'OR',
+        'pip install httpx>=0.16.0'
     ]
 
 

@@ -13,7 +13,7 @@ from .contexts import (
 )
 from toboggan.aliases import AliasSessionType
 from toboggan.annotations import Body, Options, Path, Query, QueryKebab
-from toboggan.clients import ResolverRequest, aiohttp_, requests_
+from toboggan.clients import Settings, request_async, request_sync
 from toboggan.connector import Connector
 from toboggan.models import TypeKwDump, TypeKwObjDump
 
@@ -44,7 +44,7 @@ class Verb:
         def wrapper(*args: Connector, **kwargs):
             kw_dump = sig.kw_dump(**kwargs)
             conn = next(iter(args))
-            resolve = ResolverRequest(
+            resolve = Settings(
                 base_url=conn.base_url,
                 path=self.__path,
                 base_headers=conn.base_headers,
@@ -57,12 +57,16 @@ class Verb:
                 ctx_returns_type=_ctx_returns_type.get(),
                 ctx_returns_json_key=_ctx_returns_json_value.get(),
             )
-            settings = resolve.settings_dump(
+            settings = resolve.dump(
                 session=conn.session(), method=self.__method
             )
-            if conn.client_type is AliasSessionType.AIOHTTP:
-                return aiohttp_.request(**settings._asdict())
-            return requests_.request(**settings._asdict())
+            if conn.client_type in (
+                    AliasSessionType.AIOHTTP, AliasSessionType.HTTPX_ASYNC
+            ):
+                return request_async(
+                    client_type=conn.client_type, **settings._asdict()
+                )
+            return request_sync(**settings._asdict())
         return wrapper
 
     class _Signature:

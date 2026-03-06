@@ -2,12 +2,11 @@
 from __future__ import annotations
 from typing import Any, Optional, Union
 
-# Third-party
-from requests import Session
-
 # Local
 from .aliases import AliasSessionType
-from .clients import resolve_client_type
+from .clients import (
+    AsyncClient, Client, ClientSession, Session, resolve_client_type,
+)
 
 __all__ = ('Connector',)
 
@@ -26,10 +25,11 @@ class Connector(metaclass=MetaclassConnector):
     def __init__(
             self,
             base_url: Optional[str] = None,
-            client: Optional[Union[Session, Any]] = Session()
+            client: Union[Session, Client, ClientSession, AsyncClient] = Session()
         ):
         self.base_url = base_url
         self.client = client
+        self.client_type
 
     def __repr__(self):
         return (
@@ -44,7 +44,7 @@ class Connector(metaclass=MetaclassConnector):
     def __call__(
             self,
             base_url: Optional[str] = None,
-            client: Optional[Union[Session, Any]] = None
+            client: Optional[Union[Session, Client, ClientSession, AsyncClient]] = None
     ) -> Connector:
         if base_url:
             self.base_url = base_url

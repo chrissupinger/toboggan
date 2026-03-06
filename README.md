@@ -3,8 +3,15 @@
 Inspired by [prkumar's](https://github.com/prkumar) work on 
 [Uplink](https://github.com/prkumar/uplink).
 
-toboggan wraps the popular [Requests](https://github.com/psf/requests) library.  There's 
-support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aiohttp).
+`toboggan` wraps popular HTTP request frameworks and structures connections to 
+APIs.  It supports `Requests` out-of-the-box, w/ additional support for 
+`aiohttp` and `httpx`.  Supported libraries and execution types:
+
+| Library     | Sync | Async |                      Project                      |
+|:------------|:----:|:-----:|:-------------------------------------------------:|
+| `Requests`  |  ✅   |   ❌   |       [🔗](https://github.com/psf/requests)       |
+| `aiohttp`   |  ❌   |   ✅   |     [🔗](https://github.com/aio-libs/aiohttp)     |
+| `httpx`     |  ✅   |   ✅   |  [🔗](https://github.com/projectdiscovery/httpx)  |
 
 ## Table of contents
 
@@ -20,8 +27,9 @@ support for nonblocking requests with [aiohttp](https://github.com/aio-libs/aioh
   - [sends.*](#sends)
 - [Annotations](#annotations)
 - [Usage](#usage)
-  - [Blocking](#blocking-w-httpbin)
-  - [Nonblocking](#nonblocking-w-pokéapi)
+  - [Requests](#requests-w-httpbin)
+  - [aiohttp](#aiohttp-w-pokéapi)
+  - [httpx](#httpx-w-pokéapi)
 
 ### Installation
 
@@ -31,10 +39,16 @@ Recommended installation that fits most use cases:
 pip install toboggan
 ```
 
-For async support w/ aiohttp:
+For async support w/ `aiohttp`:
 
 ```bash
 pip install toboggan[aiohttp]
+```
+
+For sync and async support w/ `httpx`:
+
+```bash
+pip install toboggan[httpx]
 ```
 
 ### Connector
@@ -79,7 +93,7 @@ blocking and nonblocking behavior is desired from mutual or exclusive paths.
 ```python
 from aiohttp import ClientSession
 from requests import Session
-from toboggan import AiohttpClient, Connector, RequestsClient
+from toboggan import Connector
 
 
 class Httpbin(Connector):
@@ -93,8 +107,11 @@ nonblocking = api(base_url='https://httpbin.org', client=ClientSession())
 ### Client
 
 The default client associated to the `Connector` class is `requests.Session`.  For 
-nonblocking requests, `aiohttp.ClientSession` can be used.  Changing the client 
-type can be achieved through:
+nonblocking requests, `aiohttp.ClientSession` can be used.  For a more 
+versatile framework, `httpx.Client` and `https.AsyncClient` can be configured 
+for blocking or nonblocking requests.
+
+Changing the client type can be achieved through:
 
 - Passing `aiohttp.ClientSession` as a constructor argument
 
@@ -115,7 +132,7 @@ httpbin = Httpbin(base_url='https://httpbin.org', client=ClientSession())
 ```python
 from aiohttp import ClientSession
 from requests import Session
-from toboggan import AiohttpClient, Connector, RequestsClient
+from toboggan import Connector
 
 
 class Httpbin(Connector):
@@ -218,7 +235,7 @@ class Httpbin(Connector):
 #### returns.*
 
 The `returns` decorator grants access to return types that can be used to 
-preemptively declare an expected return type.  When the decorated instance 
+preemptively coerce an expected return type.  When the decorated instance 
 method is invoked, the designated return type will be loaded.  If no return 
 type is designated, a client respective response object is returned.  The 
 following return types are available for use:
@@ -269,7 +286,7 @@ class Httpbin(Connector):
 #### sends.*
 
 The `sends` decorator grants access to data send types that can be used to 
-preemptively declare a data send type.  When the decorated instance method is 
+preemptively coerce a data send type.  When the decorated instance method is 
 invoked, the designated data send type will be configured for the request.  If 
 no data send type is designated, a data send type will be coerced based on 
 the data type passed to the `Body` of the request.
@@ -311,7 +328,7 @@ annotations are available for use:
 - `QueryKebab`
 
 ```python
-from toboggan import Body, Connector, Path, Query, QueryKebab, get, post
+from toboggan import Body, Connector, Path, Options, Query, QueryKebab, get, post
 
 
 class Httpbin(Connector):
@@ -336,7 +353,7 @@ class Httpbin(Connector):
 The `Body` type annotates the body of the request.  The `Path` type annotates a 
 request path parameter.  The `Query` type annotates a request query parameter.  A 
 single method can only have one `Body` annotation and an unlimited number of 
-`Path` and `Query` annotations.
+`Path`, `Query` and `QueryKebab` annotations.
 
 The `QueryKebab` type is an extenstion of the `Query` type.  This is used for 
 APIs that still employ kebab casing for their query parameters.  When assigned 
@@ -345,13 +362,15 @@ words, snake cased.  This annotation coerces snake case to kebab case.
 
 The `Options` type allows arbitrary keyword arguments to be declared for a 
 method.  When using the `Options` annotation, arguments should reflect a client 
-type's request keyword arguments.  For `Requests`, 
-see: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request).  For
-`aiohttp`, see: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request).
+type's request keyword arguments.
+
+- For `Requests`, see: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request)
+- For `aiohttp`, see: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request)
+- For `httpx`, see: [httpx.request](https://www.python-httpx.org/api/)
 
 ### Usage
 
-#### Blocking w/ [httpbin](https://github.com/postmanlabs/httpbin)
+#### `Requests` w/ [httpbin](https://github.com/postmanlabs/httpbin)
 
 ```python
 from toboggan import Body, Connector, get, headers, post
@@ -407,7 +426,7 @@ if __name__ == '__main__':
     response = httpbin.post_request(body=request_body)
 ```
 
-#### Nonblocking w/ [PokéAPI](https://pokeapi.co/)
+#### `aiohttp` w/ [PokéAPI](https://pokeapi.co/)
 
 ```python
 import asyncio
@@ -442,7 +461,7 @@ if __name__ == '__main__':
         )
         async with poke_api.session():
             tasks = [poke_api.get_pokemon(no=no) for no in range_]
-            responses = await gather(*tasks)
+            responses = await asyncio.gather(*tasks)
             return responses
 
     responses = asyncio.run(poke_api_async(range_=range(1, 152)))
@@ -451,4 +470,39 @@ if __name__ == '__main__':
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     responses = loop.run_until_complete(poke_api_async(range_=range(1, 152)))
+```
+
+#### `httpx` w/ [PokéAPI](https://pokeapi.co/)
+
+```python
+import asyncio
+from httpx import Client, AsyncClient
+from toboggan import Connector, Path, get, headers, returns
+
+
+@headers({'Content-Type': 'application/json'})
+class PokeApi(Connector):
+  
+    def __init__(self):
+        super().__init__(
+            base_url='https://pokeapi.co/api/v2/', client=Client()
+        )
+
+    @get('pokemon/{no}')
+    def get_pokemon(self, no: Path) -> str:
+        pass
+
+
+if __name__ == '__main__':
+    poke_api = PokeApi()
+    bulbasaur = poke_api.get_pokemon(no=1)
+    ivysaur = poke_api.get_pokemon(no=2)
+    
+    async def get_pokemon_async():
+        api_async = poke_api(client=AsyncClient())
+        venusaur = await api_async.get_pokemon(no=3)
+        charmander = await api_async.get_pokemon(no=4)
+        return venusaur.json(), charmander.json()
+
+    responses = asyncio.run(get_pokemon_async())
 ```

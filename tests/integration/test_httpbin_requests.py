@@ -31,6 +31,7 @@ class HttpBin(Connector):
     def method_post_form_url_encoded(self, body: Body):
         pass
 
+
 @fixture
 def fixture_api():
     return HttpBin()

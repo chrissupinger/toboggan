@@ -1,10 +1,15 @@
+# Third-party
+from pytest import fixture, mark, raises
+from aiohttp import ClientSession
+from httpx import AsyncClient, Client
+from requests import Session
+
 # Local
 from toboggan import Body, Options, Path, Query
+from toboggan.aliases import AliasSessionType
 from toboggan.models import TypeKwDump, TypeKwObjDump
 from toboggan.clients.resolvers import (
-    _get_nested,
-    _kebabize,
-    _merge_mappings,
+    resolve_client_type,
     _resolve_headers,
     _resolve_options,
     _resolve_path_params,
@@ -12,21 +17,27 @@ from toboggan.clients.resolvers import (
     _resolve_send,
 )
 
-def test_get_nested():
-    json = {'a': {'b': {'c': 1}}}
-    assert _get_nested(json, 'a') == {'b': {'c': 1}}
-    assert _get_nested(json, ['a', 'b']) == {'c': 1}
-    assert _get_nested(json, ['a', 'b', 'c']) == 1
+@fixture
+def test_resolve_client_type():
+    return resolve_client_type
 
-def test_kebabize():
-    assert _kebabize('test_key') == 'test-key'
+def test_client_type_requests(test_resolve_client_type):
+    assert test_resolve_client_type(Session()) == AliasSessionType.REQUESTS
 
-def test_merge_mappings():
-    base = {'params': {'a': 1, 'b': 2}}
-    supp = {'params': {'b': 3, 'c': 4}}
-    _merge_mappings(base=base, supp=supp, target='params')
-    assert base == {'params': {'a': 1, 'b': 3, 'c': 4}}
-    assert supp == {}
+@mark.asyncio
+async def test_client_type_aiohttp(test_resolve_client_type):
+    assert test_resolve_client_type(ClientSession()) == AliasSessionType.AIOHTTP
+
+def test_client_type_httpx_sync(test_resolve_client_type):
+    assert test_resolve_client_type(Client()) == AliasSessionType.HTTPX_SYNC
+
+@mark.asyncio
+async def test_client_type_httpx_async(test_resolve_client_type):
+    assert test_resolve_client_type(AsyncClient()) == AliasSessionType.HTTPX_ASYNC
+
+def test_client_type_none(test_resolve_client_type):
+    with raises(ModuleNotFoundError):
+        test_resolve_client_type(None)
 
 def test_resolve_headers():
     base = {'Content-Type': 'application/json'}

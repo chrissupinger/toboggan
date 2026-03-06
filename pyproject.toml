@@ -30,8 +30,13 @@ aiohttp = [
     "aiohttp[speedups] (>=3.8.0)"
 ]
 
+httpx = [
+    "httpx (>=0.16.0)"
+]
+
 all = [
     "aiohttp[speedups] (>=3.8.0)",
+    "httpx (>=0.16.0)",
     "requests (>=2.25.0)"
 ]
 
