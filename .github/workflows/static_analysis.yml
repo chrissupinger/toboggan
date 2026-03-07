@@ -25,7 +25,6 @@ jobs:
                 cache: 'pip'
             - name: Install dependencies
               run: |
-                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.69.3
                 python -m pip install --upgrade pip
                 pip install poetry vermin bandit
 
@@ -53,14 +52,21 @@ jobs:
       steps:
         - name: Checkout
           uses: actions/checkout@v4
+        - name: Setup Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.12'
+            cache: 'pip'
+        - name: Install dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install poetry
         - name: Run Trivy
           run: |
             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.69.3
-            python -m pip install --upgrade pip
-            pip install poetry
             poetry lock
             poetry install --all-extras --without test
-            trivy fs --exit-code 1 --severity HIGH,CRITICAL --format table --output trivy-report.txt toboggan/
+            trivy fs --format table --output trivy-report.txt ./
           continue-on-error: true
         - name: Upload Trivy Report
           if: always()
