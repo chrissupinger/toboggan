@@ -16,11 +16,11 @@ def _get_nested(
         try:
             json = json[key]
         except TypeError:
-                err = TypeNestedTypeErrDump(
+            err = TypeNestedTypeErrDump(
                 type_expected=dict,
                 type_found=type(json)
-                )
-                raise TypeError(err)
+            )
+            raise TypeError(err)
         except KeyError:
             err = TypeNestedKeyErrDump(
                 sequence_expected=list(value),
