@@ -58,7 +58,7 @@ jobs:
             python -m pip install --upgrade pip
             pip install poetry
             poetry lock
-            poetry install --all-extras --no-dev
+            poetry install --all-extras --without test
             trivy fs --exit-code 1 --severity HIGH,CRITICAL --format table --output trivy-report.txt toboggan/
           continue-on-error: true
         - name: Upload Trivy Report
