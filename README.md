@@ -108,7 +108,7 @@ nonblocking = api(base_url='https://httpbin.org', client=ClientSession())
 
 The default client associated to the `Connector` class is `requests.Session`.  For 
 nonblocking requests, `aiohttp.ClientSession` can be used.  For a more 
-versatile framework, `httpx.Client` and `https.AsyncClient` can be configured 
+versatile framework, `httpx.Client` and `httpx.AsyncClient` can be configured 
 for blocking or nonblocking requests.
 
 Changing the client type can be achieved through:
@@ -171,7 +171,7 @@ from toboggan import Connector, get
 class Httpbin(Connector):
     
     @get(path='/get')
-    def get_(self):
+    def get_request(self):
         pass
 ```
 

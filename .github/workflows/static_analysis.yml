@@ -25,8 +25,9 @@ jobs:
                 cache: 'pip'
             - name: Install dependencies
               run: |
+                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.69.3
                 python -m pip install --upgrade pip
-                pip install vermin bandit
+                pip install poetry vermin bandit
 
     vermin:
         needs: setup
@@ -45,6 +46,26 @@ jobs:
                 pip install vermin
             - name: Run Vermin
               run: vermin --vv --eval-annotations --min 3.9 --max 3.14 toboggan/
+    
+    trivy:
+      needs: setup
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Run Trivy
+          run: |
+            poetry lock
+            poetry install --all-extras --no-dev
+            trivy fs --exit-code 1 --severity HIGH,CRITICAL --format table --output trivy-report.txt toboggan/
+          continue-on-error: true
+        - name: Upload Trivy Report
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: trivy-report
+            path: trivy-report.txt
+            retention-days: 7
     
     bandit:
         needs: setup
