@@ -364,9 +364,9 @@ The `Options` type allows arbitrary keyword arguments to be declared for a
 method.  When using the `Options` annotation, arguments should reflect a client 
 type's request keyword arguments.
 
-- For `Requests`, see: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request)
-- For `aiohttp`, see: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request)
-- For `httpx`, see: [httpx.request](https://www.python-httpx.org/api/)
+- For `Requests`: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request)
+- For `aiohttp`: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request)
+- For `httpx`: [httpx.request](https://www.python-httpx.org/api/)
 
 ### Usage
 

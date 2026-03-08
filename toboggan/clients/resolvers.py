@@ -5,18 +5,16 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 # Third-party
 from requests import Session
 
-__no_module__ = type('__no_module__', (object,), {})
-
 try:
     from aiohttp import ClientSession
 except ModuleNotFoundError:
-    ClientSession = __no_module__
+    ClientSession = ()
 
 try:
     from httpx import AsyncClient, Client
 except ModuleNotFoundError:
-    AsyncClient = __no_module__
-    Client = __no_module__
+    AsyncClient = ()
+    Client = ()
 
 # Local
 from .utils import _get_nested, _kebabize

@@ -21,6 +21,8 @@ class MetaclassConnector(type):
 
 
 class Connector(metaclass=MetaclassConnector):
+    """Base connector class for API clients.
+    """
 
     def __init__(
             self,
