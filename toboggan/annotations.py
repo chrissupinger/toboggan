@@ -4,7 +4,7 @@ from typing import Dict, NewType
 __all__ = ('Body', 'Options', 'Path', 'Query', 'QueryKebab',)
 
 Body = NewType(name='Body', tp=Dict)
-"""Annotates a parameter that will bind the body
+"""Annotates a parameter that will bind the body.
 
 ::
 
@@ -14,7 +14,7 @@ Body = NewType(name='Body', tp=Dict)
 Options = NewType(name='Options', tp=Dict)
 """Annotates a parameter that will bind options for the request.
 
-This is specific to the underlying client implementation.
+This is specific to the underlying client implementation:
 - For `Requests`: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request)
 - For `aiohttp`: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request)
 - For `httpx`: [httpx.request](https://www.python-httpx.org/api/)
@@ -22,10 +22,10 @@ This is specific to the underlying client implementation.
 ::
 
     @get(path='/get')
-    def get_w_options(self, options: Options): pass
+    def get_w_options(self, **options: Options): pass
 """
 Path = NewType(name='Path', tp=str)
-"""Annotates a parameter that will bind path parameters
+"""Annotates a parameter that will bind path parameters.
 
 ::
 
@@ -33,7 +33,7 @@ Path = NewType(name='Path', tp=str)
     def get_w_path_params(self, first: Path, second: Path): pass
 """
 Query = NewType(name='Query', tp=str)
-"""Annotates a parameter that will bind a query parameter
+"""Annotates a parameter that will bind a query parameter.
 
 ::
 
@@ -41,9 +41,9 @@ Query = NewType(name='Query', tp=str)
     def get_w_query_params(self, first: Query, second: Query): pass
 """
 QueryKebab = NewType(name='QueryKebab', tp=str)
-"""Annotates a parameter that will bind a query parameter and implement kebab 
-case for keys.  This requires that a the query parameter key be delimited by an 
-underscore.
+"""Annotates a parameter that will bind a query parameter and implement 
+kebab case for keys.  This requires that a the query parameter key be 
+delimited by an underscore.
 
 e.g., `{'kebab_query': 'value'} == {'kebab-query': 'value'}`
 

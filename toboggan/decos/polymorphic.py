@@ -60,12 +60,49 @@ class Polymorphic:
 
 
 class Headers(Polymorphic):
+    """Provides access to the headers decorator and can be used to 
+    decorate classes and instance methods.  Argument is of type `dict`.
+
+    If used to decorate a class, will persist global headers for every 
+    instance method that consumes a :py:class:`Connector`.
+
+    If used to decorate an instance method, headers will persist for the 
+    specific HTTP request.
+
+    ::
+
+        @headers({'Content-Type': 'application/json'})
+        class Httpbin(Connector):
+            
+            @headers({'User-Agent': 'MyTestApp/1.0'})
+            @get(path='/get')
+            def get_request(self): pass
+    """
 
     def __init__(self, value: Dict):
         super().__init__(AliasReqOptType.HEADERS, value)
 
 
 class Params(Polymorphic):
+    """Provides access to the query parameters decorator and can be used 
+    to decorate classes and instance methods.  IArgument is of type 
+    `dict`.
+
+    If used to decorate a class, will persist global query parameters 
+    for every instance method that consumes a :py:class:`Connector`.
+
+    If used to decorate an instance method, query parameters will 
+    persist for the specific HTTP request.
+
+    ::
+
+        @params({'sort': 'asc', 'start_date': '2022-01-01'})
+        class Httpbin(Connector):
+            
+            @params({'lang': 'en'})
+            @get(path='/get')
+            def get_request(self): pass
+    """
 
     def __init__(self, value: Dict):
         super().__init__(AliasReqOptType.QUERY, value)

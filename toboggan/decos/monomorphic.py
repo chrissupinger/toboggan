@@ -84,6 +84,20 @@ class _Context:
 
 
 class Retry(_Context):
+    """Provides access to the `retry` decorator.  Requires the following 
+    keyword arguments: `total`, `backoff_factor` and `status_forcelist`.
+
+    The `retry` deocorator sets a retry strategy for requests.  This 
+    allows for setting a retry count (`total`), an exponential time 
+    between retries (`backoff_factor`) and conditions for a retry to 
+    occur (`status_forcelist`).
+
+    ::
+
+        @retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+        @get(path='/get')
+        def get_request(self): pass
+    """
     __slots__ = ()
 
     def __init__(
@@ -106,43 +120,43 @@ class Returns:
     def __init__(self):
         self.json = self.Json()
         """If wanting to exclusively return the response's JSON object, 
-        a flat decoration can be used
+        a flat decoration can be used.
         
         ::
         
             @returns.json
             @get(path='/get')
-            def get_(self, **kwargs): pass
+            def get_request(self, **kwargs): pass
             
         Values can be passed to the `key` argument.  This is not 
         required.  If used, the values passed will be attempted to be 
-        negotiated.  `key` can be of type `list`, `tuple`, `str` or 
-        `None`
+        negotiated.  `key` can be of type `list`, `tuple`, `set`, `str` 
+        or `None`
         
         ::
         
             @returns.json(key=...)
             @get(path='/get')
-            def get_(self, **kwargs): pass
+            def get_request(self, **kwargs): pass
         """
         self.status_code = self.Adaptable(context=AliasReturnType.STATUS_CODE)
-        """The response's status code can be exclusively returned
+        """The response's status code can be exclusively returned.
 
         ::
         
             @returns.status_code
             @post(path='/post')
-            def post_(self, **kwargs): pass
+            def post_request(self, **kwargs): pass
         """
         self.text = self.Adaptable(context=AliasReturnType.TEXT)
         """The response's text representation can be exclusively 
-        returned
+        returned.
 
         ::
         
             @returns.text
             @delete(path='/delete')
-            def delete_(self, **kwargs): pass
+            def delete_request(self, **kwargs): pass
         """
 
     class Json(_Context):
@@ -170,7 +184,7 @@ class Sends:
 
     def __init__(self):
         self.form_url_encoded = self.Adaptable(context=AliasSendsType.DATA)
-        """Default to sending form-encoded data in the request
+        """Default to sending form-encoded data in the request.
 
         ::
         
@@ -179,7 +193,7 @@ class Sends:
             def post_data(self, body: Body): pass
         """
         self.json = self.Adaptable(context=AliasSendsType.JSON)
-        """Default to sending JSON data in the request
+        """Default to sending JSON data in the request.
 
         ::
         

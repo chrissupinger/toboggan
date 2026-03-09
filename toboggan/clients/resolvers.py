@@ -5,17 +5,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 # Third-party
 from requests import Session
 
-try:
-    from aiohttp import ClientSession
-except ModuleNotFoundError:
-    ClientSession = ()
-
-try:
-    from httpx import AsyncClient, Client
-except ModuleNotFoundError:
-    AsyncClient = ()
-    Client = ()
-
 # Local
 from .utils import _get_nested, _kebabize
 from toboggan.aliases import AliasReturnType, AliasSendsType, AliasSessionType
@@ -28,6 +17,22 @@ from toboggan.models import (
     TypeSendDataDump,
     TypeSendJsonDump,
 )
+
+
+class __NoModule:
+    err = TypeModuleErrDump()
+
+
+try:
+    from aiohttp import ClientSession
+except ModuleNotFoundError:
+    ClientSession = __NoModule
+
+try:
+    from httpx import AsyncClient, Client
+except ModuleNotFoundError:
+    AsyncClient = __NoModule
+    Client = __NoModule
 
 __all__ = (
     'AsyncClient',
@@ -48,9 +53,8 @@ __all__ = (
 def resolve_client_type(
         session: Optional[Union[Session, ClientSession, AsyncClient, Client]]
 ) -> AliasSessionType:
-    if not session:
-        err = TypeModuleErrDump()
-        raise ModuleNotFoundError(err)
+    if not isinstance(session, (Session, ClientSession, AsyncClient, Client,)):
+        raise ModuleNotFoundError(__NoModule.err)
     if isinstance(session, ClientSession):
         return AliasSessionType.AIOHTTP
     if isinstance(session, AsyncClient):

@@ -33,22 +33,30 @@ APIs.  It supports `Requests` out-of-the-box, w/ additional support for
 
 ### Installation
 
-Recommended installation that fits most use cases:
+> Not yet available on PyPI.
+
+Recommended installation that fits most use cases (`Requests`):
 
 ```bash
-pip install toboggan
+pip install "git+https://github.com/chrissupinger/toboggan.git@main"
 ```
 
 For async support w/ `aiohttp`:
 
 ```bash
-pip install toboggan[aiohttp]
+pip install "toboggan[aiohttp] @ git+https://github.com/chrissupinger/toboggan.git@main"
 ```
 
 For sync and async support w/ `httpx`:
 
 ```bash
-pip install toboggan[httpx]
+pip install "toboggan[httpx] @ git+https://github.com/chrissupinger/toboggan.git@main"
+```
+
+For all:
+
+```bash
+pip install "toboggan[all] @ git+https://github.com/chrissupinger/toboggan.git@main"
 ```
 
 ### Connector

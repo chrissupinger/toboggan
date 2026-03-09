@@ -95,7 +95,7 @@ class Verb:
 
 class connect(Verb):
     """The CONNECT method establishes a tunnel to the server identified 
-    by the target resource
+    by the target resource.
 
     ::
 
@@ -108,7 +108,7 @@ class connect(Verb):
 
 
 class delete(Verb):
-    """The DELETE method deletes the specified resource
+    """The DELETE method deletes the specified resource.
 
     ::
 
@@ -122,7 +122,7 @@ class delete(Verb):
 
 class get(Verb):
     """The GET method requests a representation of the specified 
-    resource; requests using GET should only retrieve data
+    resource; requests using GET should only retrieve data.
 
     ::
 
@@ -136,7 +136,7 @@ class get(Verb):
 
 class head(Verb):
     """The HEAD method asks for a response identical to a GET request, 
-    but without the response body
+    but without the response body.
 
     ::
 
@@ -150,7 +150,7 @@ class head(Verb):
 
 class options(Verb):
     """The OPTIONS method describes the communication options for the 
-    target resource
+    target resource.
 
     ::
 
@@ -163,7 +163,7 @@ class options(Verb):
 
 
 class patch(Verb):
-    """The PATCH method applies partial modifications to a resource
+    """The PATCH method applies partial modifications to a resource.
 
     ::
 
@@ -177,7 +177,7 @@ class patch(Verb):
 
 class post(Verb):
     """ The POST method submits an entity to the specified resource, 
-    often causing a change in state or side effects on the server
+    often causing a change in state or side effects on the server.
 
     ::
 
@@ -191,7 +191,7 @@ class post(Verb):
 
 class put(Verb):
     """The PUT method replaces all current representations of the target
-    resource with the request payload
+    resource with the request payload.
 
     ::
 
@@ -205,7 +205,7 @@ class put(Verb):
 
 class trace(Verb):
     """The TRACE method performs a message loop-back test along the path 
-    to the target resource
+    to the target resource.
 
     ::
 
