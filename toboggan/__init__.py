@@ -1,18 +1,17 @@
-from .annotations import Body, Path, Query, QueryKebab, QueryMap, QueryMapKebab
-from .client import AiohttpClient, RequestsClient
 from .connector import Connector
 from .decos import (
     connect,
     delete,
     get,
     head,
-    headers,
     options,
-    params,
     patch,
     post,
     put,
-    returns,
-    sends,
-    trace,)
-from .models import ResponseObject
+    trace,
+)
+"""Verbs"""
+from .decos import headers, params, retry, returns, sends
+"""Request and response"""
+from .annotations import Body, Options, Path, Query, QueryKebab
+"""Annotations"""

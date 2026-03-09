@@ -1,76 +1,30 @@
 # Standard
-from enum import Enum
+from enum import Enum, auto
 
 __all__ = (
-    'Annotation',
-    'Client',
-    'Header',
-    'Request',
-    'Response',
-    'Scheme',
-    'Send',
-    'Verb',)
+    'AliasReqOptType', 'AliasReturnType', 'AliasSessionType', 'AliasSendsType',
+)
 
 
-class Annotation(str, Enum):
-    body = 'Body'
-    path = 'Path'
-    query = 'Query'
-    query_kebab = 'QueryKebab'
-    query_map = 'QueryMap'
-    query_map_kebab = 'QueryMapKebab'
+class AliasReqOptType(Enum):
+    HEADERS = auto()
+    QUERY = auto()
+    RETRY = auto()
 
 
-class Client(str, Enum):
-    blocking = 'blocking'
-    nonblocking = 'nonblocking'
-    session = 'session'
+class AliasReturnType(Enum):
+    JSON = auto()
+    STATUS_CODE = auto()
+    TEXT = auto()
 
 
-class Header(str, Enum):
-    user_agent = 'User-Agent'
+class AliasSessionType(Enum):
+    AIOHTTP = auto()
+    HTTPX_ASYNC = auto()
+    HTTPX_SYNC = auto()
+    REQUESTS = auto()
 
 
-class Request(str, Enum):
-    cookies = 'cookies'
-    data = 'data'
-    headers = 'headers'
-    json = 'json'
-    params = 'params'
-    method = 'method'
-    url = 'url'
-    send_format = 'send_format'
-
-
-class Response(str, Enum):
-    json = 'json'
-    returns = 'returns'
-    status_code = 'status_code'
-    text = 'text'
-
-
-class Scheme(str, Enum):
-    data = 'data'
-    ftp = 'ftp'
-    file = 'file'
-    http = 'http'
-    https = 'https'
-    irc = 'irc'
-    mailto = 'mailto'
-
-
-class Send(str, Enum):
-    data = 'data'
-    json = 'json'
-
-
-class Verb(str, Enum):
-    connect = 'CONNECT'
-    delete = 'DELETE'
-    get = 'GET'
-    head = 'HEAD'
-    options = 'OPTIONS'
-    patch = 'PATCH'
-    post = 'POST'
-    put = 'PUT'
-    trace = 'TRACE'
+class AliasSendsType(Enum):
+    DATA = auto()
+    JSON = auto()

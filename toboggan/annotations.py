@@ -1,64 +1,54 @@
 # Standard
-from typing import NewType, Union
+from typing import Dict, NewType
 
-# Local
-from .aliases import Annotation
+__all__ = ('Body', 'Options', 'Path', 'Query', 'QueryKebab',)
 
-__all__ = 'Body', 'Path', 'Query', 'QueryKebab', 'QueryMap', 'QueryMapKebab'
-
-Body = NewType(name=Annotation.body, tp=Union[dict, str])
+Body = NewType(name='Body', tp=Dict)
 """Annotates a parameter that will bind the body.
 
-Usage::
+::
 
     @post(path='/post')
-    def post_(self, body: Body): pass
+    def post_request(self, body: Body): pass
 """
-Path = NewType(name=Annotation.path, tp=Union[str, int])
+Options = NewType(name='Options', tp=Dict)
+"""Annotates a parameter that will bind options for the request.
+
+This is specific to the underlying client implementation:
+- For `Requests`: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request)
+- For `aiohttp`: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request)
+- For `httpx`: [httpx.request](https://www.python-httpx.org/api/)
+
+::
+
+    @get(path='/get')
+    def get_w_options(self, **options: Options): pass
+"""
+Path = NewType(name='Path', tp=str)
 """Annotates a parameter that will bind path parameters.
 
-Usage::
+::
 
-    @get(path='/get/{first_path_param}/{second_path_param})
-    def get_(self, first_path_param: Path, second_path_param: Path): pass
+    @get(path='/get/{first}/{second})
+    def get_w_path_params(self, first: Path, second: Path): pass
 """
-Query = NewType(name=Annotation.query, tp=Union[str, str])
+Query = NewType(name='Query', tp=str)
 """Annotates a parameter that will bind a query parameter.
 
-Usage::
+::
 
     @get(path='/get')
-    def get_(self, first_query: Query, second_query: Query): pass
+    def get_w_query_params(self, first: Query, second: Query): pass
 """
-QueryKebab = NewType(name=Annotation.query_kebab, tp=Union[str, str])
-"""Annotates a parameter that will bind a query parameter and implement kebab 
-case for keys.  This requires that a the query parameter key be delimited by an 
-underscore.
+QueryKebab = NewType(name='QueryKebab', tp=str)
+"""Annotates a parameter that will bind a query parameter and implement 
+kebab case for keys.  This requires that a the query parameter key be 
+delimited by an underscore.
 
-e.g., `{'first_query': 'value'} == {'first-query': 'value'}`
+e.g., `{'kebab_query': 'value'} == {'kebab-query': 'value'}`
 
-Usage::
-
-    @get(path='/get')
-    def get_(self, first_query: QueryKebab, second_query: QueryKebab): pass
-"""
-QueryMap = NewType(name=Annotation.query_map, tp=Union[str, str])
-"""Annotates a parameter that will bind query parameters.
-
-Usage::
+::
 
     @get(path='/get')
-    def get_(self, **mapping_of_queries: QueryMap): pass
-"""
-QueryMapKebab = NewType(name=Annotation.query_map_kebab, tp=Union[str, str])
-"""Annotates a parameter that will bind query parameters and implement kebab 
-case for keys.  This requires that a the query parameter keys be delimited by 
-underscores.
-
-e.g., `{'first_query': 'value', 'second_query': 'value'} == {'first-query': 'value', 'second-query': 'value'}`
-
-Usage::
-
-    @get(path='/get')
-    def get_(self, **mapping_of_queries: QueryMapKebab): pass
+    def get_w_query_params(self, first: Query, kebab_query: QueryKebab): pass
 """
