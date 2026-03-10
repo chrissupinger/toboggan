@@ -34,9 +34,14 @@ httpx = [
     "httpx (>=0.16.0)"
 ]
 
+pydantic = [
+    "pydantic (>=1.10.26)"
+]
+
 all = [
     "aiohttp[speedups] (>=3.8.0)",
     "httpx (>=0.16.0)",
+    "pydantic (>=1.10.26)",
     "requests (>=2.25.0)"
 ]
 

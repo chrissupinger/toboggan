@@ -2,7 +2,11 @@
 from enum import Enum, auto
 
 __all__ = (
-    'AliasReqOptType', 'AliasReturnType', 'AliasSessionType', 'AliasSendsType',
+    'AdaptersEvalType',
+    'AliasReqOptType',
+    'AliasReturnType',
+    'AliasSessionType',
+    'AliasSendsType',
 )
 
 
@@ -28,3 +32,9 @@ class AliasSessionType(Enum):
 class AliasSendsType(Enum):
     DATA = auto()
     JSON = auto()
+
+
+class AdaptersEvalType(Enum):
+    NONE = auto()
+    PYDANTIC_V1 = auto()
+    PYDANTIC_V2 = auto()

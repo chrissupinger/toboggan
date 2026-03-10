@@ -58,5 +58,5 @@ class Connector(metaclass=MetaclassConnector):
         return self.client
 
     @property
-    def client_type(self) -> Optional[AliasSessionType]:
+    def client_type(self) -> AliasSessionType:
         return resolve_client_type(self.client)

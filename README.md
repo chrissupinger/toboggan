@@ -53,6 +53,12 @@ For sync and async support w/ `httpx`:
 pip install "toboggan[httpx] @ git+https://github.com/chrissupinger/toboggan.git@main"
 ```
 
+For `Pydantic` support:
+
+```bash
+pip install "toboggan[pydantic] @ git+https://github.com/chrissupinger/toboggan.git@main"
+```
+
 For all:
 
 ```bash
@@ -462,6 +468,7 @@ class PokeApi(Connector):
 
 
 if __name__ == '__main__':
+
     # Utilizing `asyncio.run` for Python 3.7 and above.
     async def poke_api_async(range_):
         poke_api = PokeApi(
@@ -497,7 +504,7 @@ class PokeApi(Connector):
         )
 
     @get('pokemon/{no}')
-    def get_pokemon(self, no: Path) -> str:
+    def get_pokemon(self, no: Path):
         pass
 
 
