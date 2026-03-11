@@ -41,8 +41,7 @@ class Verb:
 
         @wraps(func)
         def wrapper(*args: Connector, **kwargs):
-            kw_dump = sig.kw_dump(**kwargs)
-            conn = next(iter(args))
+            conn, kw_dump = sig.dump(*args, **kwargs)
             resolve = Settings(
                 base_url=conn.base_url,
                 path=self.__path,

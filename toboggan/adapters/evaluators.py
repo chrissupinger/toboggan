@@ -71,16 +71,14 @@ class EvalReturn:
         # TODO: Fix the check for scenarios where Python arbitrary types are
         # nested as type hints.  i.e., `list[str]`.
         if not isinstance(response, type(self.__eval_type)):
-                err = TypeEvalErrDump(
-                    type_expected=self.__eval_type,
-                    type_evaluated=type(response)
-                )
-                raise Exception(err)
+            err = TypeEvalErrDump(
+                type_expected=self.__eval_type,
+                type_evaluated=type(response)
+            )
+            raise Exception(err)
         return response
 
     def evaluate(self, response: Any) -> Any:
         if self.__assessible_adapter_type():
             return self.__validate_adapter_type(response=response)
-        if self.__eval_type:
-            return self.__validate_std_type(response=response)
         return response

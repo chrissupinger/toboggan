@@ -1,5 +1,5 @@
 # Standard
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Union
 
 # Local
 from toboggan.aliases import AliasReturnType
@@ -26,7 +26,7 @@ class TypeHeadersDump(NamedTuple):
 
 
 class TypeKwObjDump(NamedTuple):
-    sig_type: type
+    sig_type: Any
     kw_value: Union[Dict, str, int]
 
 

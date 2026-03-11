@@ -4,32 +4,42 @@ Inspired by [prkumar's](https://github.com/prkumar) work on
 [Uplink](https://github.com/prkumar/uplink).
 
 `toboggan` wraps popular HTTP request frameworks and structures connections to 
-APIs.  It supports `Requests` out-of-the-box, w/ additional support for 
+APIs.  It supports `Requests` out-of-the-box, w/ optional support for 
 `aiohttp` and `httpx`.  Supported libraries and execution types:
 
-| Library     | Sync | Async |                      Project                      |
-|:------------|:----:|:-----:|:-------------------------------------------------:|
-| `Requests`  |  ✅   |   ❌   |       [🔗](https://github.com/psf/requests)       |
-| `aiohttp`   |  ❌   |   ✅   |     [🔗](https://github.com/aio-libs/aiohttp)     |
-| `httpx`     |  ✅   |   ✅   |  [🔗](https://github.com/projectdiscovery/httpx)  |
+| Library    | Sync  | Async  | Project                                         |
+|:-----------|:-----:|:------:|:-----------------------------------------------:|
+| `Requests` | ✅    | ❌     | [🔗](https://github.com/psf/requests)           |
+| `aiohttp`  | ❌    | ✅     | [🔗](https://github.com/aio-libs/aiohttp)       |
+| `httpx`    | ✅    | ✅     | [🔗](https://github.com/projectdiscovery/httpx) |
+
+Optionally, `Pydantic` is supported for validating request responses.  Supported 
+versions:
+
+| Version | Supported | Docs                                    |
+|:--------|:---------:|:---------------------------------------:|
+| `v2`    | ✅        | [🔗](https://docs.pydantic.dev/latest/) |
+| `v1`    | ✅        | [🔗](https://docs.pydantic.dev/1.10/)   |
 
 ## Table of contents
 
 - [Installation](#installation)
-- [Connector](#connector)
+- [`Connector`](#connector)
 - [Client](#client)
 - [Decorators](#decorators)
-  - [Verbs](#verbs)
-  - [headers](#headers)
-  - [params](#params)
-  - [retry](#retry)
-  - [returns.*](#returns)
-  - [sends.*](#sends)
+    - [Verbs](#verbs)
+    - [`headers`](#headers)
+    - [`params`](#params)
+    - [`retry`](#retry)
+    - [`returns.*`](#returns)
+    - [`sends.*`](#sends)
 - [Annotations](#annotations)
+- [Adapters](#adapters)
+    - [`Pydantic`](#pydantic)
 - [Usage](#usage)
-  - [Requests](#requests-w-httpbin)
-  - [aiohttp](#aiohttp-w-pokéapi)
-  - [httpx](#httpx-w-pokéapi)
+    - [`Requests`](#requests-w-httpbin)
+    - [`aiohttp`](#aiohttp-w-pokéapi)
+    - [`httpx`](#httpx-w-pokéapi)
 
 ### Installation
 
@@ -381,6 +391,63 @@ type's request keyword arguments.
 - For `Requests`: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request)
 - For `aiohttp`: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request)
 - For `httpx`: [httpx.request](https://www.python-httpx.org/api/)
+
+### Adapters
+
+Adapters are used to bridge support between `toboggan` and other frameworks.
+
+#### `Pydantic`
+
+```python
+from pydantic import BaseModel, HttpUrl
+from toboggan import Connector, get, returnsns
+
+
+class Response(BaseModel):
+    args: dict
+    headers: dict
+    origin: str
+    url: HttpUrl
+
+
+class Httpbin(Connector):
+
+    @returns.json
+    @get(path='/get')
+    def get_json(self) -> Response:
+        pass
+
+
+if __name__ == '__main__':
+    httpbin = Httpbin(base_url='http://httpbin.org')
+    response = httpbin.get_json()
+    """Response(args={...}, headers={...}, origin=..., url=....)
+    """
+```
+
+In the above scenario, the `response` returns as the defined 
+`pydantic.BaseModel`.  The JSON response is first validated against the defined 
+schema and, if valid, returns a `Response` object.  If invalid, an `Exception` 
+is raised.
+
+Just like any `pydantic.BaseModel`, all native methods are avaliable:
+
+```python
+dict_obj_v2 = response.model_dump()  # Pydantic v2
+dict_obj_v1 = response.dict()  # Pydantic v1
+"""
+{
+    'args': {
+        ...
+    },
+    'headers': {
+        ...
+    },
+    'origin': ...,
+    'url': ...
+}
+"""
+```
 
 ### Usage
 
