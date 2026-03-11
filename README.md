@@ -24,22 +24,22 @@ versions:
 ## Table of contents
 
 - [Installation](#installation)
-- [`Connector`](#connector)
+- [Connector](#connector)
 - [Client](#client)
 - [Decorators](#decorators)
     - [Verbs](#verbs)
-    - [`headers`](#headers)
-    - [`params`](#params)
-    - [`retry`](#retry)
-    - [`returns.*`](#returns)
-    - [`sends.*`](#sends)
+    - [headers](#headers)
+    - [params](#params)
+    - [retry](#retry)
+    - [returns.*](#returns)
+    - [sends.*](#sends)
 - [Annotations](#annotations)
 - [Adapters](#adapters)
-    - [`Pydantic`](#pydantic)
+    - [Pydantic](#pydantic)
 - [Usage](#usage)
-    - [`Requests`](#requests-w-httpbin)
-    - [`aiohttp`](#aiohttp-w-pokéapi)
-    - [`httpx`](#httpx-w-pokéapi)
+    - [Requests](#requests-w-httpbin)
+    - [aiohttp](#aiohttp-w-pokéapi)
+    - [httpx](#httpx-w-pokéapi)
 
 ### Installation
 
