@@ -16,10 +16,10 @@ APIs.  It supports `Requests` out-of-the-box, w/ optional support for
 Optionally, `Pydantic` is supported for validating request responses.  Supported 
 versions:
 
-| Version | Supported | Docs                                    |
-|:--------|:---------:|:---------------------------------------:|
-| `v2`    | ✅        | [🔗](https://docs.pydantic.dev/latest/) |
-| `v1`    | ✅        | [🔗](https://docs.pydantic.dev/1.10/)   |
+| Version          | Supported | Docs                                    |
+|:-----------------|:---------:|:---------------------------------------:|
+| `Pydantic v2`    | ✅        | [🔗](https://docs.pydantic.dev/latest/) |
+| `Pydantic v1`    | ✅        | [🔗](https://docs.pydantic.dev/1.10/)   |
 
 ## Table of contents
 
@@ -43,7 +43,7 @@ versions:
 
 ### Installation
 
-> Not yet available on PyPI.
+> Not yet available on `PyPI`
 
 Recommended installation that fits most use cases (`Requests`):
 
@@ -75,7 +75,7 @@ For all:
 pip install "toboggan[all] @ git+https://github.com/chrissupinger/toboggan.git@main"
 ```
 
-### Connector
+### `Connector`
 
 The `Connector` class is the base configuration for creating all API models.  It 
 can grant any instance method access to a common client session and a wide 
@@ -199,7 +199,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### headers
+#### `headers`
 
 The `headers` decorator is versatile and can be employed at both the 
 class-level and its instance methods.  When decorating the subclass of the 
@@ -220,7 +220,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### params
+#### `params`
 
 Just like the `headers` decorator, the `params` decorator is versatile.  The 
 `params` decorator requires a mapping
@@ -238,7 +238,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### retry
+#### `retry`
 
 The `retry` deocorator sets a retry strategy for requests.  This allows for 
 setting a retry count (`total`), an exponential time between retries 
@@ -256,7 +256,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### returns.*
+#### `returns.*`
 
 The `returns` decorator grants access to return types that can be used to 
 preemptively coerce an expected return type.  When the decorated instance 
@@ -307,7 +307,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### sends.*
+#### `sends.*`
 
 The `sends` decorator grants access to data send types that can be used to 
 preemptively coerce a data send type.  When the decorated instance method is 
