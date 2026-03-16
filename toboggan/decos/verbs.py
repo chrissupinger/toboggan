@@ -1,6 +1,6 @@
 # Standard
 from functools import wraps
-from typing import Any, Callable, Dict, get_type_hints
+from typing import Callable
 
 # Local
 from .contexts import (
@@ -11,11 +11,10 @@ from .contexts import (
     _ctx_returns_json_value,
     _ctx_sends_type,
 )
+from .evaluators import _EvalSignature
 from toboggan.aliases import AliasSessionType
-from toboggan.annotations import Body, Options, Path, Query, QueryKebab
-from toboggan.clients import Settings, request_async, request_sync
+from toboggan.clients import Requests, Settings
 from toboggan.connector import Connector
-from toboggan.models import TypeKwDump, TypeKwObjDump
 
 __all__ = (
     'connect',
@@ -38,12 +37,11 @@ class Verb:
         self.__path: str = path
 
     def __call__(self, func: Callable) -> Callable:
-        sig = self._Signature(func)
+        sig = _EvalSignature(func)
 
         @wraps(func)
         def wrapper(*args: Connector, **kwargs):
-            kw_dump = sig.kw_dump(**kwargs)
-            conn = next(iter(args))
+            conn, kw_dump = sig.dump(*args, **kwargs)
             resolve = Settings(
                 base_url=conn.base_url,
                 path=self.__path,
@@ -60,37 +58,13 @@ class Verb:
             settings = resolve.dump(
                 session=conn.session(), method=self.__method
             )
-            if conn.client_type in (
-                    AliasSessionType.AIOHTTP, AliasSessionType.HTTPX_ASYNC
-            ):
-                return request_async(
-                    client_type=conn.client_type, **settings._asdict()
-                )
-            return request_sync(**settings._asdict())
+            build_request = Requests(
+                client_type=conn.client_type,
+                eval_type=sig.eval_type,
+                **settings._asdict()
+            )
+            return build_request.resolve_request()
         return wrapper
-
-    class _Signature:
-        __slots__ = ('__signature',)
-
-        def __init__(self, func: Callable):
-            self.__signature: Dict[str, Any] = get_type_hints(func)
-
-        def kw_dump(self, **kwargs) -> TypeKwDump:
-            base = TypeKwDump()
-            for sig_key, sig_value in self.__signature.items():
-                if sig_value in (Body, Path, Query, QueryKebab,):
-                    base.dump[sig_key] = TypeKwObjDump(
-                        sig_type=sig_value, kw_value=kwargs.get(sig_key)
-                    )
-                if sig_value is Options:
-                    opts = {
-                        key: val for key, val in kwargs.items()
-                        if key not in base.dump.keys()
-                    }
-                    base.dump[sig_key] = TypeKwObjDump(
-                        sig_type=sig_value, kw_value=opts
-                    )
-            return base
 
 
 class connect(Verb):

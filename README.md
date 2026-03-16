@@ -4,14 +4,22 @@ Inspired by [prkumar's](https://github.com/prkumar) work on
 [Uplink](https://github.com/prkumar/uplink).
 
 `toboggan` wraps popular HTTP request frameworks and structures connections to 
-APIs.  It supports `Requests` out-of-the-box, w/ additional support for 
+APIs.  It supports `Requests` out-of-the-box, w/ optional support for 
 `aiohttp` and `httpx`.  Supported libraries and execution types:
 
-| Library     | Sync | Async |                      Project                      |
-|:------------|:----:|:-----:|:-------------------------------------------------:|
-| `Requests`  |  ✅   |   ❌   |       [🔗](https://github.com/psf/requests)       |
-| `aiohttp`   |  ❌   |   ✅   |     [🔗](https://github.com/aio-libs/aiohttp)     |
-| `httpx`     |  ✅   |   ✅   |  [🔗](https://github.com/projectdiscovery/httpx)  |
+| Library    | Sync  | Async  | Project                                         |
+|:-----------|:-----:|:------:|:-----------------------------------------------:|
+| `Requests` | ✅    | ❌     | [🔗](https://github.com/psf/requests)           |
+| `aiohttp`  | ❌    | ✅     | [🔗](https://github.com/aio-libs/aiohttp)       |
+| `httpx`    | ✅    | ✅     | [🔗](https://github.com/projectdiscovery/httpx) |
+
+Optionally, `Pydantic` is supported for validating request responses.  Supported 
+versions:
+
+| Version          | Supported | Docs                                    |
+|:-----------------|:---------:|:---------------------------------------:|
+| `Pydantic v2`    | ✅        | [🔗](https://docs.pydantic.dev/latest/) |
+| `Pydantic v1`    | ✅        | [🔗](https://docs.pydantic.dev/1.10/)   |
 
 ## Table of contents
 
@@ -19,21 +27,23 @@ APIs.  It supports `Requests` out-of-the-box, w/ additional support for
 - [Connector](#connector)
 - [Client](#client)
 - [Decorators](#decorators)
-  - [Verbs](#verbs)
-  - [headers](#headers)
-  - [params](#params)
-  - [retry](#retry)
-  - [returns.*](#returns)
-  - [sends.*](#sends)
+    - [Verbs](#verbs)
+    - [headers](#headers)
+    - [params](#params)
+    - [retry](#retry)
+    - [returns.*](#returns)
+    - [sends.*](#sends)
 - [Annotations](#annotations)
+- [Adapters](#adapters)
+    - [Pydantic](#pydantic)
 - [Usage](#usage)
-  - [Requests](#requests-w-httpbin)
-  - [aiohttp](#aiohttp-w-pokéapi)
-  - [httpx](#httpx-w-pokéapi)
+    - [Requests](#requests-w-httpbin)
+    - [aiohttp](#aiohttp-w-pokéapi)
+    - [httpx](#httpx-w-pokéapi)
 
 ### Installation
 
-> Not yet available on PyPI.
+> Not yet available on `PyPI`
 
 Recommended installation that fits most use cases (`Requests`):
 
@@ -53,13 +63,19 @@ For sync and async support w/ `httpx`:
 pip install "toboggan[httpx] @ git+https://github.com/chrissupinger/toboggan.git@main"
 ```
 
+For `Pydantic` support:
+
+```bash
+pip install "toboggan[pydantic] @ git+https://github.com/chrissupinger/toboggan.git@main"
+```
+
 For all:
 
 ```bash
 pip install "toboggan[all] @ git+https://github.com/chrissupinger/toboggan.git@main"
 ```
 
-### Connector
+### `Connector`
 
 The `Connector` class is the base configuration for creating all API models.  It 
 can grant any instance method access to a common client session and a wide 
@@ -183,7 +199,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### headers
+#### `headers`
 
 The `headers` decorator is versatile and can be employed at both the 
 class-level and its instance methods.  When decorating the subclass of the 
@@ -204,7 +220,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### params
+#### `params`
 
 Just like the `headers` decorator, the `params` decorator is versatile.  The 
 `params` decorator requires a mapping
@@ -222,7 +238,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### retry
+#### `retry`
 
 The `retry` deocorator sets a retry strategy for requests.  This allows for 
 setting a retry count (`total`), an exponential time between retries 
@@ -240,7 +256,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### returns.*
+#### `returns.*`
 
 The `returns` decorator grants access to return types that can be used to 
 preemptively coerce an expected return type.  When the decorated instance 
@@ -291,7 +307,7 @@ class Httpbin(Connector):
         pass
 ```
 
-#### sends.*
+#### `sends.*`
 
 The `sends` decorator grants access to data send types that can be used to 
 preemptively coerce a data send type.  When the decorated instance method is 
@@ -375,6 +391,63 @@ type's request keyword arguments.
 - For `Requests`: [requests.Session.request](https://docs.python-requests.org/en/latest/api/#requests.Session.request)
 - For `aiohttp`: [aiohttp.ClientSession.request](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request)
 - For `httpx`: [httpx.request](https://www.python-httpx.org/api/)
+
+### Adapters
+
+Adapters are used to bridge support between `toboggan` and other frameworks.
+
+#### `Pydantic`
+
+```python
+from pydantic import BaseModel, HttpUrl
+from toboggan import Connector, get, returnsns
+
+
+class Response(BaseModel):
+    args: dict
+    headers: dict
+    origin: str
+    url: HttpUrl
+
+
+class Httpbin(Connector):
+
+    @returns.json
+    @get(path='/get')
+    def get_json(self) -> Response:
+        pass
+
+
+if __name__ == '__main__':
+    httpbin = Httpbin(base_url='http://httpbin.org')
+    response = httpbin.get_json()
+    """Response(args={...}, headers={...}, origin=..., url=....)
+    """
+```
+
+In the above scenario, the `response` returns as the defined 
+`pydantic.BaseModel`.  The JSON response is first validated against the defined 
+schema and, if valid, returns a `Response` object.  If invalid, an `Exception` 
+is raised.
+
+Just like any `pydantic.BaseModel`, all native methods are avaliable:
+
+```python
+dict_obj_v2 = response.model_dump()  # Pydantic v2
+dict_obj_v1 = response.dict()  # Pydantic v1
+"""
+{
+    'args': {
+        ...
+    },
+    'headers': {
+        ...
+    },
+    'origin': ...,
+    'url': ...
+}
+"""
+```
 
 ### Usage
 
@@ -462,6 +535,7 @@ class PokeApi(Connector):
 
 
 if __name__ == '__main__':
+
     # Utilizing `asyncio.run` for Python 3.7 and above.
     async def poke_api_async(range_):
         poke_api = PokeApi(
@@ -497,7 +571,7 @@ class PokeApi(Connector):
         )
 
     @get('pokemon/{no}')
-    def get_pokemon(self, no: Path) -> str:
+    def get_pokemon(self, no: Path):
         pass
 
 

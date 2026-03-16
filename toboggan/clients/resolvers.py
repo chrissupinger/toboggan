@@ -1,38 +1,38 @@
 # Standard
 from functools import lru_cache
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Union
 
 # Third-party
 from requests import Session
 
 # Local
 from .utils import _get_nested, _kebabize
-from toboggan.aliases import AliasReturnType, AliasSendsType, AliasSessionType
+from toboggan.aliases import AliasSendsType, AliasSessionType
 from toboggan.annotations import Body, Options, Path, Query, QueryKebab
 from toboggan.models import (
     TypeHeadersDump,
     TypeKwDump,
-    TypeModuleErrDump,
+    TypeClientModuleErrDump,
     TypeQueryParamsDump,
     TypeSendDataDump,
     TypeSendJsonDump,
 )
 
 
-class __NoModule:
-    err = TypeModuleErrDump()
+class __NoClientModule:
+    err = TypeClientModuleErrDump()
 
 
 try:
     from aiohttp import ClientSession
 except ModuleNotFoundError:
-    ClientSession = __NoModule
+    ClientSession = __NoClientModule
 
 try:
     from httpx import AsyncClient, Client
 except ModuleNotFoundError:
-    AsyncClient = __NoModule
-    Client = __NoModule
+    AsyncClient = __NoClientModule
+    Client = __NoClientModule
 
 __all__ = (
     'AsyncClient',
@@ -44,8 +44,6 @@ __all__ = (
     '_resolve_options',
     '_resolve_path_params',
     '_resolve_query_params',
-    '_resolve_response_async',
-    '_resolve_response_sync',
     '_resolve_send',
 )
 
@@ -54,7 +52,7 @@ def resolve_client_type(
         session: Optional[Union[Session, ClientSession, AsyncClient, Client]]
 ) -> AliasSessionType:
     if not isinstance(session, (Session, ClientSession, AsyncClient, Client,)):
-        raise ModuleNotFoundError(__NoModule.err)
+        raise ModuleNotFoundError(__NoClientModule.err)
     if isinstance(session, ClientSession):
         return AliasSessionType.AIOHTTP
     if isinstance(session, AsyncClient):
@@ -117,36 +115,3 @@ def _resolve_query_params(
         if base:
             return TypeQueryParamsDump(base)._asdict()
         return base
-
-def _resolve_response_sync(
-        response: Any,
-        ctx_returns_type: Optional[AliasReturnType] = None,
-        ctx_returns_json_key: Optional[Union[str, List[str], Tuple[str]]] = None
-) -> Union[Any, Dict, str, int]:
-    if ctx_returns_type is AliasReturnType.JSON:
-        json = response.json()
-        if ctx_returns_json_key:
-            if ctx_returns_json_key:
-                return _get_nested(json=json, value=ctx_returns_json_key)
-        return json
-    elif ctx_returns_type is AliasReturnType.STATUS_CODE:
-        return response.status_code
-    elif ctx_returns_type is AliasReturnType.TEXT:
-        return response.text
-    return response
-
-async def _resolve_response_async(
-        response: Any,
-        ctx_returns_type: Optional[AliasReturnType] = None,
-        ctx_returns_json_key: Optional[Union[str, List[str], Tuple[str]]] = None
-) -> Union[Any, Dict, str, int]:
-    if ctx_returns_type is AliasReturnType.JSON:
-        json = await response.json()
-        if ctx_returns_json_key:
-            return _get_nested(json=json, value=ctx_returns_json_key)
-        return json
-    elif ctx_returns_type is AliasReturnType.STATUS_CODE:
-        return response.status
-    elif ctx_returns_type is AliasReturnType.TEXT:
-        return await response.text()
-    return response

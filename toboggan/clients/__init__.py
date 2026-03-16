@@ -1,5 +1,5 @@
 # Local
-from .requests import request_async, request_sync
+from .requests import Requests
 from .resolvers import (
     AsyncClient, Client, ClientSession, Session, resolve_client_type,
 )

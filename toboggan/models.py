@@ -1,11 +1,11 @@
 # Standard
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Union
 
 # Local
 from toboggan.aliases import AliasReturnType
 
 __all__ = (
-    'TypeModuleErrDump',
+    'TypeClientModuleErrDump',
     'TypeHeadersDump',
     'TypeKwDump',
     'TypeKwObjDump',
@@ -17,6 +17,7 @@ __all__ = (
     'TypeRetryErrDump',
     'TypeSendDataDump',
     'TypeSendJsonDump',
+    'TypeEvalErrDump',
 )
 
 
@@ -25,7 +26,7 @@ class TypeHeadersDump(NamedTuple):
 
 
 class TypeKwObjDump(NamedTuple):
-    sig_type: type
+    sig_type: Any
     kw_value: Union[Dict, str, int]
 
 
@@ -64,7 +65,7 @@ class TypeSendJsonDump(NamedTuple):
     json: Union[Dict, str]
 
 
-class TypeModuleErrDump(NamedTuple):
+class TypeClientModuleErrDump(NamedTuple):
     base_dependencies: List[str] = ['requests>=2.25.0']
     optional_dependencies: List[str] = [
         'aiohttp[speedups]>=3.7.0', 'httpx>=0.16.0'
@@ -110,3 +111,14 @@ class TypeRetryErrDump(NamedTuple):
     solution_message: str = 'Consider increasing the number of retry ' \
     'attempts or adjusting the backoff factor to allow for more time ' \
     'between retry attempts.'
+
+
+class TypeEvalErrDump(NamedTuple):
+    type_expected: Union[type, List]
+    type_evaluated: type
+    err_message: Union[List, str] = 'This error occurs when the ' \
+    'annotated return type hint does not evaluate to the response ' \
+    'returned.'
+    solution_message: str = 'If using an annotated return type hint, ' \
+    'double-check the expected response type.  If using ' \
+    '`pydantic.BaseModel`, double-check the schema.'
