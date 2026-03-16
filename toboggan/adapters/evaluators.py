@@ -1,6 +1,6 @@
 # Standard
-from typing import Any, Union
-from typing import get_args, get_origin
+from typing import Any
+from typing import get_args
 
 
 class __NoPydanticModule:
