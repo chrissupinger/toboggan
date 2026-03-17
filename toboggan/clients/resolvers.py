@@ -6,7 +6,7 @@ from typing import Dict, Optional, Union
 from requests import Session
 
 # Local
-from .utils import _get_nested, _kebabize
+from .utils import _kebabize
 from toboggan.aliases import AliasSendsType, AliasSessionType
 from toboggan.annotations import Body, Options, Path, Query, QueryKebab
 from toboggan.models import (

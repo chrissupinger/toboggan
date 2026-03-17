@@ -12,7 +12,6 @@ from .contexts import (
     _ctx_sends_type,
 )
 from .evaluators import _EvalSignature
-from toboggan.aliases import AliasSessionType
 from toboggan.clients import Requests, Settings
 from toboggan.connector import Connector
 
