@@ -1,5 +1,9 @@
 # toboggan
 
+[![License](https://img.shields.io/github/license/chrissupinger/toboggan)](https://github.com/chrissupinger/toboggan/blob/main/LICENSE)
+[![Quality](https://github.com/chrissupinger/toboggan/actions/workflows/quality.yml/badge.svg)](https://github.com/chrissupinger/toboggan/actions/workflows/quality.yml)
+[![Static Analysis](https://github.com/chrissupinger/toboggan/actions/workflows/static_analysis.yml/badge.svg)](https://github.com/chrissupinger/toboggan/actions/workflows/static_analysis.yml)
+
 Inspired by [prkumar's](https://github.com/prkumar) work on 
 [Uplink](https://github.com/prkumar/uplink).
 
