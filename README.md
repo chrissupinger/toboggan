@@ -404,7 +404,7 @@ Adapters are used to bridge support between `toboggan` and other frameworks.
 
 ```python
 from pydantic import BaseModel, HttpUrl
-from toboggan import Connector, get, returnsns
+from toboggan import Connector, get, returns
 
 
 class Response(BaseModel):

@@ -6,8 +6,7 @@ from pytest import fixture, raises
 from pydantic import BaseModel, HttpUrl
 
 # Local
-from toboggan import Connector, Body, Path, get, post, returns, sends
-from toboggan.models import TypeEvalErrDump
+from toboggan import Connector, Path, get, returns
 
 
 class ValidModelGetHttpbin(BaseModel):
